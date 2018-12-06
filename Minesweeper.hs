@@ -2,9 +2,6 @@ module Minesweeper where
 import System.Random
 import Data.List
 
-main :: IO ()
-main = do
-        putStrLn "I do nothing yet!"
 
 {-
 Definitions for developers benefit
