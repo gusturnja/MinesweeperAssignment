@@ -28,6 +28,7 @@ type Board = [[Flag]]
 type Pos = (Int, Int) --column then row
 
 data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mineLocations :: [Pos]}
+  deriving Show
 
 -- Test Data
 exampleBoard :: Board
@@ -41,8 +42,19 @@ exampleMineLocations = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMineLocations
 
-instance Show Minesweeper where
-  show m = "You aint done this yet"
+mkBoard :: Int -> Board
+mkBoard x = replicate x $ replicate x "[]"
+
+------------------------------------------------------------------------------------------------------------------------
+-- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+printBoard :: Board -> IO ()
+printBoard board = putStrLn (boardToString board)
+
+boardToString :: Board -> String
+boardToString [] = ""
+boardToString (x:xs) = unwords x ++ "\n" ++ boardToString xs
 
 {-
 TODO
