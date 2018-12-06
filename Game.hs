@@ -10,3 +10,14 @@ main = do
   let bsize = read r_bsize :: Int
   putStrLn $ "Selected " ++ show bsize ++ " as board size"
   putStrLn "Thanks for playing!"
+
+------------------------------------------------------------------------------------------------------------------------
+-- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+printBoard :: Board -> IO ()
+printBoard board = putStrLn (boardToString board)
+
+boardToString :: Board -> String
+boardToString [] = ""
+boardToString (x:xs) = unwords x ++ "\n" ++ boardToString xs

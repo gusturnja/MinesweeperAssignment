@@ -63,16 +63,7 @@ mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
 mkMineSweeper :: Int -> Int -> StdGen -> Minesweeper
 mkMineSweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
 
-------------------------------------------------------------------------------------------------------------------------
--- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------
 
-printBoard :: Board -> IO ()
-printBoard board = putStrLn (boardToString board)
-
-boardToString :: Board -> String
-boardToString [] = ""
-boardToString (x:xs) = unwords x ++ "\n" ++ boardToString xs
 
 {-
 TODO
