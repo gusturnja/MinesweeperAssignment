@@ -1,4 +1,6 @@
 module Minesweeper where
+import System.Random
+import Data.List
 
 main :: IO ()
 main = do
@@ -42,8 +44,27 @@ exampleMineLocations = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMineLocations
 
+------------------------------------------------------------------------------------------------------------------------
+-- MINESWEEPER CREATION ------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Make a new clear board of a specified size
 mkBoard :: Int -> Board
-mkBoard x = replicate x $ replicate x "[]"
+mkBoard bsize = replicate bsize $ replicate bsize "[]"
+
+-- | Make new random mine locations.
+mkMineLocations :: Int -> Int -> StdGen -> [Pos]
+mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
+  where getLocations :: Int -> Int -> StdGen -> [Pos]
+        getLocations bsize numPos g
+          | numPos == 0 = []
+          | otherwise   = (x,y) : getLocations bsize (numPos - 1) g2
+          where (x,g1) = randomR (0, bsize -1) g
+                (y,g2) = randomR (0, bsize -1) g1
+
+-- | Make a new clear minesweeper board with randomised mine locations
+mkMineSweeper :: Int -> Int -> StdGen -> Minesweeper
+mkMineSweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------
