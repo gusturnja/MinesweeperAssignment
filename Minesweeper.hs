@@ -47,8 +47,13 @@ exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in total
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
 
+-- | Determine if a given position is the same position as a mine
 hasHitMine :: Minesweeper -> Pos -> Bool
 hasHitMine m p = p `elem` (mines m)
+
+-- | Given a position, find the number of mines in the local square
+numMinesInSquare :: Minesweeper -> Pos -> Int
+numMinesInSquare m p = length [ x | x <- (getSquarePositions m p), x `elem` (mines m) ]
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SETTERS -------------------------------------------------------------------------------------------------------------
@@ -73,6 +78,8 @@ setValue m (x,y) string = m { board = (b !!= (y , (b !! y) !!= (x,string)))}
 getValue :: Minesweeper -> Pos -> String
 getValue m (c,r) = ((board m) !! r) !! c
 
+-- TODO Find a more efficent implementation of getSquarePositions
+-- | Get a value with its immediate neighbours
 getSquarePositions :: Minesweeper -> Pos -> [Pos]
 getSquarePositions m (x2,y2)
   | y3 >= bsize && x3 >= bsize = [(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
