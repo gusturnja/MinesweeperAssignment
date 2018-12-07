@@ -1,6 +1,7 @@
 module Game where
 import Minesweeper
 import System.Random
+import Data.List
 
 main = do
   g <- newStdGen
