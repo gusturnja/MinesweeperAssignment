@@ -58,19 +58,25 @@ clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p
   | hasHitMine m p = setValue m p mine --set value to mine
   | n /= 0         = setValue m p (number n) --show the number of mines in the local square
-  | otherwise      = setValue m p clear -- set the value to clear (and in future check to see if the local square can be cleared also)
+  | otherwise      = cleared m p -- set the value to clear
   where b = board m
         n = numMinesInSquare m p
 
-{-- Ignore
-cleared m [] = m
-cleared m (p:ps)
-  | getValue m p == clear = m
-  | n == 0 = cleared updated ps
-  | otherwise = updated
-  where updated = setValue m p clear
-        n = numMinesInSquare m p
---}
+-- | Basically only makes a list, of size 1, of the position given and sends it to cleared'
+cleared :: Minesweeper -> Pos -> Minesweeper
+cleared m p
+  | getValue m p == unselected = cleared' m [p]
+  | otherwise                  = m
+
+-- | Unveils the cells (and their neighbours if clear)
+cleared' :: Minesweeper -> [Pos] -> Minesweeper
+cleared' m [] = m
+cleared' m (p:ps)
+  | getValue m p /= unselected = cleared' m ps
+  | n == 0                     = cleared' (setValue m p clear) (nub (ps ++ (getSquarePositions m p)))
+  | otherwise                  = cleared' (setValue m p (number n)) ps
+  where n = numMinesInSquare m p
+
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
