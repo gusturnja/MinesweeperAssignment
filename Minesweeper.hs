@@ -22,7 +22,7 @@ The user wins the game if they have selected all tiles that are not mines
 
 type Flag = String
 type Board = [[Flag]]
-type Pos = (Int, Int) --column then row
+type Pos = (Int, Int) --row then column
 
 data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos]}
   deriving Show
@@ -51,6 +51,17 @@ example = Minesweeper exampleBoard exampleBoardSize exampleMines
 hasHitMine :: Minesweeper -> Pos -> Bool
 hasHitMine m p = p `elem` (mines m)
 
+clearSquare :: Minesweeper -> Pos -> Minesweeper
+clearSquare m p = f m p
+  where f :: Minesweeper -> Pos -> Minesweeper
+        f m p
+          | hasHitMine m p = setValue m p " *" --set value to mine
+          | n /= 0         = setValue m p (show n) --show the number of mines in the local square
+          | otherwise      = setValue m p "  " -- set the value to clear (and in future check to see if the local square can be cleared also)
+          where b = board m
+                n = numMinesInSquare m p
+
+
 -- | Given a position, find the number of mines in the local square
 numMinesInSquare :: Minesweeper -> Pos -> Int
 numMinesInSquare m p = length [ x | x <- (getSquarePositions m p), x `elem` (mines m) ]
@@ -67,7 +78,7 @@ numMinesInSquare m p = length [ x | x <- (getSquarePositions m p), x `elem` (min
 
 -- | Set a board position to a new specified value
 setValue :: Minesweeper -> Pos -> String -> Minesweeper
-setValue m (x,y) string = m { board = (b !!= (y , (b !! y) !!= (x,string)))}
+setValue m (y,x) string = m { board = (b !!= (y , (b !! y) !!= (x,string)))}
   where b = board m
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -76,7 +87,7 @@ setValue m (x,y) string = m { board = (b !!= (y , (b !! y) !!= (x,string)))}
 
 -- | Get a value from a minesweeper board at a specified position
 getValue :: Minesweeper -> Pos -> String
-getValue m (c,r) = ((board m) !! r) !! c
+getValue m (r,c) = ((board m) !! r) !! c
 
 -- TODO Find a more efficent implementation of getSquarePositions
 -- | Get a values immediate neighbour positions
@@ -104,7 +115,7 @@ mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
   where getLocations :: Int -> Int -> StdGen -> [Pos]
         getLocations bsize numPos g
           | numPos == 0 = []
-          | otherwise   = (x,y) : getLocations bsize (numPos - 1) g2
+          | otherwise   = (y,x) : getLocations bsize (numPos - 1) g2
           where (x,g1) = randomR (0, bsize -1) g
                 (y,g2) = randomR (0, bsize -1) g1
 
