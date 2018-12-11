@@ -62,6 +62,7 @@ clearSquare m p
   where b = board m
         n = numMinesInSquare m p
 
+{-- Ignore
 cleared m [] = m
 cleared m (p:ps)
   | getValue m p == clear = m
@@ -69,7 +70,7 @@ cleared m (p:ps)
   | otherwise = updated
   where updated = setValue m p clear
         n = numMinesInSquare m p
-
+--}
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
