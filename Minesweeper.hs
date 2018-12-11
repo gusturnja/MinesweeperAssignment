@@ -27,6 +27,13 @@ type Pos = (Int, Int) --row then column
 data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos]}
   deriving Show
 
+-- Allowed Characters (For formatting minesweepers)
+unselected = "[]"
+flagged = " F"
+clear   = "  "
+mine    = " *"
+number n = " " ++ (show n)
+
 -- Test Data
 exampleBoard :: Board
 exampleBoard = [["[]","[]","[]","[]","[]","[]","[]","[]"," 2"]
@@ -47,10 +54,6 @@ exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in total
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
 
--- | Determine if a given position is the same position as a mine
-hasHitMine :: Minesweeper -> Pos -> Bool
-hasHitMine m p = p `elem` (mines m)
-
 clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p = f m p
   where f :: Minesweeper -> Pos -> Minesweeper
@@ -61,13 +64,46 @@ clearSquare m p = f m p
           where b = board m
                 n = numMinesInSquare m p
 
+------------------------------------------------------------------------------------------------------------------------
+-- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Returns all positions which cells contain the character code for mine
+getPosMine :: Minesweeper -> [Pos]
+getPosMine = getPositions (== mine)
+
+-- | Returns all positions which cells contain the character code for clear
+getPosClear :: Minesweeper -> [Pos]
+getPosClear = getPositions (== clear)
+
+-- | Returns all positions which cells contain the character code for unselected
+getPosUnselected :: Minesweeper -> [Pos]
+getPosUnselected = getPositions (== unselected)
+
+-- | Return all positions which cells contain the character code for flagged
+getPosFlagged :: Minesweeper -> [Pos]
+getPosFlagged = getPositions (== flagged)
+
+-- | Get all positions of cells that match the given function
+getPositions :: (Flag -> Bool) -> Minesweeper -> [Pos]
+getPositions f m = [ (rowNum,colNum) | (rowNum,row) <- (zip [0 .. ] bo), (colNum,value) <- (zip [0 .. ] row), f value ]
+  where bsize = boardSize m
+        bo = board m
+
+------------------------------------------------------------------------------------------------------------------------
+-- GAME RUNTIME CHECKS -------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Determine if a given position is the same position as a mine
+hasHitMine :: Minesweeper -> Pos -> Bool
+hasHitMine m p = p `elem` (mines m)
 
 -- | Given a position, find the number of mines in the local square
 numMinesInSquare :: Minesweeper -> Pos -> Int
 numMinesInSquare m p = length [ x | x <- (getSquarePositions m p), x `elem` (mines m) ]
 
 ------------------------------------------------------------------------------------------------------------------------
--- SETTERS -------------------------------------------------------------------------------------------------------------
+-- UPDATE  -------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
 -- | Update a given list by replacing the item at the specified location with the new specified item
