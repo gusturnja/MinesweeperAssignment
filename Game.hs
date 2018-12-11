@@ -23,6 +23,9 @@ main = do
 -- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
+printMinesweeper :: Minesweeper -> IO ()
+printMinesweeper m = printBoard (board m)
+
 printBoard :: Board -> IO ()
 printBoard board = putStrLn (boardToString board)
 

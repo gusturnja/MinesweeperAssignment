@@ -55,14 +55,13 @@ exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in total
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
 
 clearSquare :: Minesweeper -> Pos -> Minesweeper
-clearSquare m p = f m p
-  where f :: Minesweeper -> Pos -> Minesweeper
-        f m p
-          | hasHitMine m p = setValue m p " *" --set value to mine
-          | n /= 0         = setValue m p (show n) --show the number of mines in the local square
-          | otherwise      = setValue m p "  " -- set the value to clear (and in future check to see if the local square can be cleared also)
-          where b = board m
-                n = numMinesInSquare m p
+clearSquare m p
+  | hasHitMine m p = setValue m p mine --set value to mine
+  | n /= 0         = setValue m p (number n) --show the number of mines in the local square
+  | otherwise      = setValue m p clear -- set the value to clear (and in future check to see if the local square can be cleared also)
+  where b = board m
+        n = numMinesInSquare m p
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
@@ -158,15 +157,3 @@ mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
 -- | Make a new clear minesweeper board with randomised mine locations
 mkMineSweeper :: Int -> Int -> StdGen -> Minesweeper
 mkMineSweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
-
-{-
-TODO
-
-Create Minesweeper data type
-create show instance for minesweeper board
-create cell data type
-create test cases isMinesweeper etc
-create randomise bomb locations (choose difficulty to select number of bombs?)
-
-
--}
