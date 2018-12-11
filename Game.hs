@@ -10,7 +10,14 @@ main = do
   r_bsize <- getLine
   let bsize = read r_bsize :: Int
   putStrLn $ "Selected " ++ show bsize ++ " as board size"
+  putStrLn "Please enter the number of mines"
+  r_msize <- getLine
+  let msize = read r_msize :: Int
+      m = mkMineSweeper bsize msize g
+  printBoard (board m)
   putStrLn "Thanks for playing!"
+
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------

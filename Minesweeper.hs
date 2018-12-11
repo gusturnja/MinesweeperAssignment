@@ -79,14 +79,14 @@ getValue :: Minesweeper -> Pos -> String
 getValue m (c,r) = ((board m) !! r) !! c
 
 -- TODO Find a more efficent implementation of getSquarePositions
--- | Get a value with its immediate neighbours
+-- | Get a values immediate neighbour positions
 getSquarePositions :: Minesweeper -> Pos -> [Pos]
 getSquarePositions m (x2,y2)
-  | y3 >= bsize && x3 >= bsize = [(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
-  | y1 < 0 && x1 < 0           = [(x2,y2),(x3,y2),(x2,y3),(x3,y3)]
-  | y3 >= bsize && x1 < 0      = [(x2,y1),(x3,y1),(x2,y2),(x3,y2)]
-  | y1 < 0 && x3 >= bsize      = [(x1,y2),(x2,y2),(x1,y3),(x2,y3)]
-  | otherwise                  = [(x1,y1),(x2,y1),(x3,y1),(x1,y2),(x2,y2),(x3,y2),(x1,y3),(x2,y3),(x3,y3)]
+  | y3 >= bsize && x3 >= bsize = [(x1,y1),(x2,y1),(x1,y2)]
+  | y1 < 0 && x1 < 0           = [(x3,y2),(x2,y3),(x3,y3)]
+  | y3 >= bsize && x1 < 0      = [(x2,y1),(x3,y1),(x3,y2)]
+  | y1 < 0 && x3 >= bsize      = [(x1,y2),(x1,y3),(x2,y3)]
+  | otherwise                  = [(x1,y1),(x2,y1),(x3,y1),(x1,y2),(x3,y2),(x1,y3),(x2,y3),(x3,y3)]
   where bsize = boardSize m
         (x1,x3,y1,y3) = (x2-1,x2+1,y2-1,y2+1)
 
@@ -123,4 +123,3 @@ create randomise bomb locations (choose difficulty to select number of bombs?)
 
 
 -}
-
