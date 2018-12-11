@@ -29,10 +29,10 @@ data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos
 
 -- Allowed Characters (For formatting minesweepers)
 unselected = "[]"
-flagged = " F"
-clear   = "  "
-mine    = " *"
-number n = " " ++ (show n)
+flagged    = " F"
+clear      = "  "
+mine       = " *"
+number n   = " " ++ (show n)
 
 -- Test Data
 exampleBoard :: Board
@@ -62,6 +62,13 @@ clearSquare m p
   where b = board m
         n = numMinesInSquare m p
 
+cleared m [] = m
+cleared m (p:ps)
+  | getValue m p == clear = m
+  | n == 0 = cleared updated ps
+  | otherwise = updated
+  where updated = setValue m p clear
+        n = numMinesInSquare m p
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
@@ -100,6 +107,14 @@ hasHitMine m p = p `elem` (mines m)
 -- | Given a position, find the number of mines in the local square
 numMinesInSquare :: Minesweeper -> Pos -> Int
 numMinesInSquare m p = length [ x | x <- (getSquarePositions m p), x `elem` (mines m) ]
+
+-- | Returns True if the only remaining cells that are either flagged or unselected match the positions of all the mines, False otherwise
+checkWin :: Minesweeper -> Bool
+checkWin m = nub (getPosFlagged m ++ getPosUnselected m) == mines m
+
+-- | Check if any cell in the minesweeper matches the mine character code (has been selected and set to a mine)
+checkLose :: Minesweeper -> Bool
+checkLose m = getPosMine m /= []
 
 ------------------------------------------------------------------------------------------------------------------------
 -- UPDATE  -------------------------------------------------------------------------------------------------------------
@@ -142,7 +157,7 @@ getSquarePositions m (x2,y2)
 
 -- | Make a new clear board of a specified size
 mkBoard :: Int -> Board
-mkBoard bsize = replicate bsize $ replicate bsize "[]"
+mkBoard bsize = replicate bsize $ replicate bsize unselected
 
 -- | Make new random mine locations.
 mkMineLocations :: Int -> Int -> StdGen -> [Pos]
