@@ -25,10 +25,10 @@ type Pos = (Int, Int) --row then column
 data Flag = Unselected | Flagged | Clear | Mine | Numeric Int
   deriving Eq
 
-data Row = Row {flags :: [Flag]}
+newtype Row = Row {flags :: [Flag]}
   deriving Eq
 
-data Board = Board {rows :: [Row]}
+newtype Board = Board {rows :: [Row]}
   deriving Eq
 
 data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos]}
@@ -43,14 +43,14 @@ instance Show Flag where
 
 -- | Prints a row, with all its flags
 instance Show Row where
-  show r | length (flags r) == 0 = ""
-         | otherwise             = show x ++ show (Row xs)
+  show r | null (flags r) = ""
+         | otherwise      = show x ++ show (Row xs)
            where (x:xs) = flags r
 
 -- | Prints a board, with all its flags in their rows
 instance Show Board where
-  show b | length (rows b) == 0 = ""
-         | otherwise            = show x ++ "\n" ++ show (Board xs)
+  show b | null (rows b) = ""
+         | otherwise     = show x ++ "\n" ++ show (Board xs)
            where (x:xs) = rows b
 
 -- | Prints the board, the size and the mine. (Should probably be updated to show all the values, like a cheat)
@@ -100,7 +100,7 @@ cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
 cleared' m (p:ps)
   | getValue m p /= Unselected = cleared' m ps
-  | n == 0                     = cleared' (setValue m p Clear) (nub (ps ++ (getSquarePositions m p)))
+  | n == 0                     = cleared' (setValue m p Clear) (nub (ps ++ getSquarePositions m p))
   | otherwise                  = cleared' (setValue m p (Numeric n)) ps
   where n = numMinesInSquare m p
 
@@ -126,7 +126,7 @@ getPosFlagged = getPositions (== Flagged)
 
 -- | Get all positions of cells that match the given function
 getPositions :: (Flag -> Bool) -> Minesweeper -> [Pos]
-getPositions f m = [ (rowNum,colNum) | (rowNum,row) <- (zip [0 .. ] bo), (colNum,value) <- (zip [0 .. ] (flags row)), f value ]
+getPositions f m = [ (rowNum,colNum) | (rowNum,row) <- zip [0 .. ] bo, (colNum,value) <- zip [0 .. ] (flags row), f value ]
   where bsize = boardSize m
         bo = rows (board m)
 
@@ -136,11 +136,11 @@ getPositions f m = [ (rowNum,colNum) | (rowNum,row) <- (zip [0 .. ] bo), (colNum
 
 -- | Determine if a given position is the same position as a mine
 hasHitMine :: Minesweeper -> Pos -> Bool
-hasHitMine m p = p `elem` (mines m)
+hasHitMine m p = p `elem` mines m
 
 -- | Given a position, find the number of mines in the local square
 numMinesInSquare :: Minesweeper -> Pos -> Int
-numMinesInSquare m p = length [ x | x <- (getSquarePositions m p), x `elem` (mines m) ]
+numMinesInSquare m p = length [ x | x <- getSquarePositions m p, x `elem` mines m ]
 
 -- | Returns True if the only remaining cells that are either flagged or unselected match the positions of all the mines, False otherwise
 checkWin :: Minesweeper -> Bool
@@ -158,11 +158,11 @@ checkLose m = getPosMine m /= []
 -- | This was taken from the Sudoku assignment as the required implementation is exactly the same
 (!!=) :: [a] -> (Int,a) -> [a]
 (!!=) [] (_,x) = [x]
-(!!=) xs (i,x) = (take i xs) ++ [x] ++ (drop (i+1) xs)
+(!!=) xs (i,x) = take i xs ++ [x] ++ drop (i+1) xs
 
 -- | Set a board position to a new specified value
 setValue :: Minesweeper -> Pos -> Flag -> Minesweeper
-setValue m (y,x) flag = m { board = Board (rs !!= (y , Row ((flags (rs !! y)) !!= (x,flag))))}
+setValue m (y,x) flag = m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= (x,flag))))}
   where rs = rows (board m)
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ setValue m (y,x) flag = m { board = Board (rs !!= (y , Row ((flags (rs !! y)) !!
 
 -- | Get a value from a minesweeper board at a specified position
 getValue :: Minesweeper -> Pos -> Flag
-getValue m (r,c) = (flags ((rows (board m)) !! r)) !! c
+getValue m (r,c) = flags (rows (board m) !! r) !! c
 
 -- TODO Find a more efficent implementation of getSquarePositions
 -- | Get a values immediate neighbour positions
@@ -191,7 +191,7 @@ getSquarePositions m (x2,y2)
 
 -- | Make a new clear board of a specified size
 mkBoard :: Int -> Board
-mkBoard bsize = Board (replicate bsize $ (Row (replicate bsize Unselected)))
+mkBoard bsize = Board (replicate bsize $ Row (replicate bsize Unselected))
 
 -- | Make new random mine locations.
 mkMineLocations :: Int -> Int -> StdGen -> [Pos]
