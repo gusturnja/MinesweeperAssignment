@@ -20,31 +20,58 @@ The user wins the game if they have selected all tiles that are not mines
   (NOT if they have flagged all mine locations, otherwise flagging all locations would cause the user to win)
 -}
 
-type Flag = String
-type Board = [[Flag]]
 type Pos = (Int, Int) --row then column
 
-data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos]}
-  deriving Show
+data Flag = Unselected | Flagged | Clear | Mine | Numeric Int
+  deriving Eq
 
--- Allowed Characters (For formatting minesweepers)
-unselected = "[]"
-flagged    = " F"
-clear      = "  "
-mine       = " *"
-number n   = " " ++ (show n)
+data Row = Row {flags :: [Flag]}
+  deriving Eq
+
+data Board = Board {rows :: [Row]}
+  deriving Eq
+
+data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos]}
+
+-- | Print a flag
+instance Show Flag where
+  show (Numeric n) = " " ++ show n
+  show Unselected  = "[]"
+  show Flagged     = " F"
+  show Clear       = "  "
+  show Mine        = " *"
+
+-- | Prints a row, with all its flags
+instance Show Row where
+  show r | length (flags r) == 0 = ""
+         | otherwise             = show x ++ show (Row xs)
+           where (x:xs) = flags r
+
+-- | Prints a board, with all its flags in their rows
+instance Show Board where
+  show b | length (rows b) == 0 = ""
+         | otherwise            = show x ++ "\n" ++ show (Board xs)
+           where (x:xs) = rows b
+
+-- | Prints the board, the size and the mine. (Should probably be updated to show all the values, like a cheat)
+instance Show Minesweeper where
+  show (Minesweeper b s m)
+    = show b ++ "\nBoard Size: " ++ show s ++ "\nMines: " ++ show m
 
 -- Test Data
 exampleBoard :: Board
-exampleBoard = [["[]","[]","[]","[]","[]","[]","[]","[]"," 2"]
-               ,["[]","[]","[]","[]","[]","[]","[]"," 5","[]"]
-               ,["[]","[]","[]","[]","[]","[]","[]","[]"," 9"]
-               ,["[]","[]","[]","[]","[]","[]","[]","[]","[]"]
-               ,["[]","[]","[]"," 4"," 1","[]","[]","[]","[]"]
-               ,["[]","[]","[]","[]"," 2","[]","[]","[]","[]"]
-               ,["[]","[]","[]","[]","[]","[]","[]","[]","[]"]
-               ,["[]","[]","[]","[]","[]","[]","[]","[]","[]"]
-               ,["[]","[]","[]","[]","[]","[]","[]","[]","[]"]]
+exampleBoard = Board [r [ u , u , u , u , u , u , u , u ,n 2]
+                     ,r [ u , u , u , u , u , u , u ,n 5, u ]
+                     ,r [ u , u , u , u , u , u , u , u ,n 9]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u ,n 4,n 1, u , u , u , u ]
+                     ,r [ u , u , u , u ,n 2, u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]]
+                       where r = Row
+                             n = Numeric
+                             u = Unselected
 
 exampleBoardSize :: Int
 exampleBoardSize = 9
@@ -56,8 +83,8 @@ example = Minesweeper exampleBoard exampleBoardSize exampleMines
 
 clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p
-  | hasHitMine m p = setValue m p mine --set value to mine
-  | n /= 0         = setValue m p (number n) --show the number of mines in the local square
+  | hasHitMine m p = setValue m p Mine --set value to mine
+  | n /= 0         = setValue m p (Numeric n) --show the number of mines in the local square
   | otherwise      = cleared m p -- set the value to clear
   where b = board m
         n = numMinesInSquare m p
@@ -65,16 +92,16 @@ clearSquare m p
 -- | Basically only makes a list, of size 1, of the position given and sends it to cleared'
 cleared :: Minesweeper -> Pos -> Minesweeper
 cleared m p
-  | getValue m p == unselected = cleared' m [p]
+  | getValue m p == Unselected = cleared' m [p]
   | otherwise                  = m
 
 -- | Unveils the cells (and their neighbours if clear)
 cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
 cleared' m (p:ps)
-  | getValue m p /= unselected = cleared' m ps
-  | n == 0                     = cleared' (setValue m p clear) (nub (ps ++ (getSquarePositions m p)))
-  | otherwise                  = cleared' (setValue m p (number n)) ps
+  | getValue m p /= Unselected = cleared' m ps
+  | n == 0                     = cleared' (setValue m p Clear) (nub (ps ++ (getSquarePositions m p)))
+  | otherwise                  = cleared' (setValue m p (Numeric n)) ps
   where n = numMinesInSquare m p
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -83,25 +110,25 @@ cleared' m (p:ps)
 
 -- | Returns all positions which cells contain the character code for mine
 getPosMine :: Minesweeper -> [Pos]
-getPosMine = getPositions (== mine)
+getPosMine = getPositions (== Mine)
 
 -- | Returns all positions which cells contain the character code for clear
 getPosClear :: Minesweeper -> [Pos]
-getPosClear = getPositions (== clear)
+getPosClear = getPositions (== Clear)
 
 -- | Returns all positions which cells contain the character code for unselected
 getPosUnselected :: Minesweeper -> [Pos]
-getPosUnselected = getPositions (== unselected)
+getPosUnselected = getPositions (== Unselected)
 
 -- | Return all positions which cells contain the character code for flagged
 getPosFlagged :: Minesweeper -> [Pos]
-getPosFlagged = getPositions (== flagged)
+getPosFlagged = getPositions (== Flagged)
 
 -- | Get all positions of cells that match the given function
 getPositions :: (Flag -> Bool) -> Minesweeper -> [Pos]
-getPositions f m = [ (rowNum,colNum) | (rowNum,row) <- (zip [0 .. ] bo), (colNum,value) <- (zip [0 .. ] row), f value ]
+getPositions f m = [ (rowNum,colNum) | (rowNum,row) <- (zip [0 .. ] bo), (colNum,value) <- (zip [0 .. ] (flags row)), f value ]
   where bsize = boardSize m
-        bo = board m
+        bo = rows (board m)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GAME RUNTIME CHECKS -------------------------------------------------------------------------------------------------
@@ -134,17 +161,17 @@ checkLose m = getPosMine m /= []
 (!!=) xs (i,x) = (take i xs) ++ [x] ++ (drop (i+1) xs)
 
 -- | Set a board position to a new specified value
-setValue :: Minesweeper -> Pos -> String -> Minesweeper
-setValue m (y,x) string = m { board = (b !!= (y , (b !! y) !!= (x,string)))}
-  where b = board m
+setValue :: Minesweeper -> Pos -> Flag -> Minesweeper
+setValue m (y,x) flag = m { board = Board (rs !!= (y , Row ((flags (rs !! y)) !!= (x,flag))))}
+  where rs = rows (board m)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GETTERS -------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
 -- | Get a value from a minesweeper board at a specified position
-getValue :: Minesweeper -> Pos -> String
-getValue m (r,c) = ((board m) !! r) !! c
+getValue :: Minesweeper -> Pos -> Flag
+getValue m (r,c) = (flags ((rows (board m)) !! r)) !! c
 
 -- TODO Find a more efficent implementation of getSquarePositions
 -- | Get a values immediate neighbour positions
@@ -164,7 +191,7 @@ getSquarePositions m (x2,y2)
 
 -- | Make a new clear board of a specified size
 mkBoard :: Int -> Board
-mkBoard bsize = replicate bsize $ replicate bsize unselected
+mkBoard bsize = Board (replicate bsize $ (Row (replicate bsize Unselected)))
 
 -- | Make new random mine locations.
 mkMineLocations :: Int -> Int -> StdGen -> [Pos]
