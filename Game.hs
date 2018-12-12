@@ -27,8 +27,4 @@ printMinesweeper :: Minesweeper -> IO ()
 printMinesweeper m = printBoard (board m)
 
 printBoard :: Board -> IO ()
-printBoard board = putStrLn (boardToString board)
-
-boardToString :: Board -> String
-boardToString [] = ""
-boardToString (x:xs) = unwords x ++ "\n" ++ boardToString xs
+printBoard board = putStrLn (show board)
