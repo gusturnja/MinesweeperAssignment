@@ -85,7 +85,7 @@ exampleBoardSize :: Int
 exampleBoardSize = 9
 
 exampleMines :: [Pos]
-exampleMines = [] -- 7 mines in total
+exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in total
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
 example2 = Minesweeper exampleBoard2 3 []
