@@ -186,13 +186,7 @@ checkLose m = getPosMine m /= []
 
 -- | Set a board position to a new specified value
 setValue :: Minesweeper -> Pos -> Flag -> Minesweeper
-setValue m (y,x) flag
-  | null (y,x)       = error "pos is null here"
-  | y >= boardSize m = error "y is greater than board size"
-  | y < 0 = error "y is less than 0"
-  | x >= boardSize m = error "x is greater than board size"
-  | x < 0 = error "x is less than 0"
-  | otherwise =  m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= (x,flag))))}
+setValue m (y,x) flag = m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= (x,flag))))}
   where rs = rows (board m)
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -201,11 +195,7 @@ setValue m (y,x) flag
 
 -- | Get a value from a minesweeper board at a specified position
 getValue :: Minesweeper -> Pos -> Flag
-getValue m (r,c)
-  | null (r,c) = error "null pos"
-  | r >= boardSize m = error ("r is too large" ++ show r)
-  | c >= boardSize m = error "c is too large"
-  | otherwise = flags (rows (board m) !! r) !! c
+getValue m (r,c) = flags (rows (board m) !! r) !! c
 
 -- TODO Find a more efficent implementation of getSquarePositions
 -- | Get a values immediate neighbour positions
