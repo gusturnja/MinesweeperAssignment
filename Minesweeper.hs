@@ -112,7 +112,7 @@ cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
 cleared' m ((y,x):ps)
   | getValue m p /= Unselected = cleared' m ps
-  | n == 0                     = cleared' clearPos ps
+  | n == 0                     = cleared' clearPos (nub (ps ++ getUncheckedPositions m p))
   | otherwise                  = cleared' (setValue m p (Numeric n)) ps
   where n = numMinesInSquare m p
         squares = nub (ps ++ getSquarePositions m p)
@@ -186,7 +186,13 @@ checkLose m = getPosMine m /= []
 
 -- | Set a board position to a new specified value
 setValue :: Minesweeper -> Pos -> Flag -> Minesweeper
-setValue m (y,x) flag = m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= (x,flag))))}
+setValue m (y,x) flag
+  | null (y,x)       = error "pos is null here"
+  | y >= boardSize m = error "y is greater than board size"
+  | y < 0 = error "y is less than 0"
+  | x >= boardSize m = error "x is greater than board size"
+  | x < 0 = error "x is less than 0"
+  | otherwise =  m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= (x,flag))))}
   where rs = rows (board m)
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -195,7 +201,11 @@ setValue m (y,x) flag = m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= 
 
 -- | Get a value from a minesweeper board at a specified position
 getValue :: Minesweeper -> Pos -> Flag
-getValue m (r,c) = flags (rows (board m) !! r) !! c
+getValue m (r,c)
+  | null (r,c) = error "null pos"
+  | r >= boardSize m = error ("r is too large" ++ show r)
+  | c >= boardSize m = error "c is too large"
+  | otherwise = flags (rows (board m) !! r) !! c
 
 -- TODO Find a more efficent implementation of getSquarePositions
 -- | Get a values immediate neighbour positions
@@ -205,9 +215,19 @@ getSquarePositions m (x2,y2)
   | y1 < 0 && x1 < 0           = [(x3,y2),(x2,y3),(x3,y3)]
   | y3 >= bsize && x1 < 0      = [(x2,y1),(x3,y1),(x3,y2)]
   | y1 < 0 && x3 >= bsize      = [(x1,y2),(x1,y3),(x2,y3)]
+  | y3 >= bsize                = [(x1,y1),(x2,y1),(x3,y1),(x1,y2),(x3,y2)]
+  | y1 < 0                     = [(x1,y2),(x3,y2),(x1,y3),(x2,y3),(x3,y3)]
+  | x3 >= bsize                = [(x1,y1),(x2,y1),(x1,y2),(x1,y3),(x2,y3)]
+  | x1 < 0                     = [(x2,y1),(x3,y1),(x3,y2),(x2,y3),(x3,y3)]
   | otherwise                  = [(x1,y1),(x2,y1),(x3,y1),(x1,y2),(x3,y2),(x1,y3),(x2,y3),(x3,y3)]
   where bsize = boardSize m
         (x1,x3,y1,y3) = (x2-1,x2+1,y2-1,y2+1)
+
+get1Coord :: Int -> Int -> [Int]
+get1Coord size x
+  | (x + 1) >= size = replicate 3 (x - 1) ++ replicate 3 x
+  | (x - 1) < 0     = replicate 3 x ++ replicate 3 (x + 1)
+  | otherwise       = replicate 3 (x - 1) ++ replicate 3 x ++ replicate 3 (x + 1)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MINESWEEPER CREATION ------------------------------------------------------------------------------------------------
