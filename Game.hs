@@ -20,6 +20,7 @@ main = do
 
 gameLoop :: Minesweeper -> IO ()
 gameLoop m = do
+              putStrLn ""
               printMinesweeper m
               if checkWin m
               then do
@@ -29,9 +30,10 @@ gameLoop m = do
                 then do
                   putStrLn "You lose!"
                 else do
-                  putStrLn "c -  Clear a Cell"
-                  putStrLn "f -   Flag a Cell"
-                  putStrLn "exit - Force Quit"
+                  putStrLn "c -    Clear a Cell"
+                  putStrLn "f -     Flag a Cell"
+                  putStrLn "exit -         Quit"
+                  putStrLn "help -  How to play"
                   putStrLn "Please enter option"
                   input <- getLine
                   case input of
@@ -45,8 +47,11 @@ gameLoop m = do
                       p <- inputCoord
                       let newm = setFlagged m p
                       gameLoop newm
+                    "help" -> do
+                      putStrLn "Welcome to Minesweeper ........."
+                      gameLoop m
                     _ -> do
-                      putStrLn "I'm sorry, please enter either c, f or exit"
+                      putStrLn "I'm sorry, please enter either c, f , help or exit"
                       gameLoop m
 
 inputCoord :: IO Pos
@@ -60,7 +65,21 @@ inputCoord = do
 ------------------------------------------------------------------------------------------------------------------------
 
 printMinesweeper :: Minesweeper -> IO ()
-printMinesweeper m = printBoard (board m)
+printMinesweeper m = do
+                        --print top row
+                        --print board
+                        putStrLn $ "  | " ++ printTopRow [0 .. (bsize - 1)]
+                        putStrLn ("--|-" ++ concat (replicate bsize "---"))
+                        putStrLn $ printBoard $ zip [0 ..(bsize - 1)] (rows b)
+                        where
+                          b = board m
+                          bsize = boardSize m
 
-printBoard :: Board -> IO ()
-printBoard board = putStrLn (show board)
+
+printBoard :: [(Int,Row)] -> String
+printBoard [] = ""
+printBoard ((x,r):rs) = show x ++ " | " ++ show r ++ "\n" ++ printBoard rs
+
+printTopRow :: [Int] -> String
+printTopRow [] = ""
+printTopRow (x:xs) = " " ++ show x ++ " " ++ printTopRow xs

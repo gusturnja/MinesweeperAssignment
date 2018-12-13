@@ -38,7 +38,7 @@ instance Show Flag where
   show (Numeric n) = " " ++ show n ++ " "
   show Unselected  = "[ ]"
   show Flagged     = " F "
-  show Clear       = " C "
+  show Clear       = "   "
   show Mine        = " * "
 
 -- | Prints a row, with all its flags
@@ -64,7 +64,7 @@ exampleBoard = Board [r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
-                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u , f , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
@@ -72,6 +72,7 @@ exampleBoard = Board [r [ u , u , u , u , u , u , u , u , u ]
                        where r = Row
                              n = Numeric
                              u = Unselected
+                             f = Flagged
 
 exampleBoard2 :: Board
 exampleBoard2 = Board [r [ u , u , u ]
@@ -172,7 +173,7 @@ numMinesInSquare m p = length [ x | x <- getSquarePositions m p, x `elem` mines 
 
 -- | Returns True if the only remaining cells that are either flagged or unselected match the positions of all the mines, False otherwise
 checkWin :: Minesweeper -> Bool
-checkWin m = nub (getPosFlagged m ++ getPosUnselected m) == mines m
+checkWin m =  sort (getPosFlagged m ++ getPosUnselected m) == sort (mines m)
 
 -- | Check if any cell in the minesweeper matches the mine character code (has been selected and set to a mine)
 checkLose :: Minesweeper -> Bool
