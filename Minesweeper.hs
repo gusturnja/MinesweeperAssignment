@@ -35,11 +35,11 @@ data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos
 
 -- | Print a flag
 instance Show Flag where
-  show (Numeric n) = " " ++ show n
-  show Unselected  = "[]"
+  show (Numeric n) = " " ++ show n ++ " "
+  show Unselected  = "[ ]"
   show Flagged     = " F"
-  show Clear       = "  "
-  show Mine        = " *"
+  show Clear       = "   "
+  show Mine        = " * "
 
 -- | Prints a row, with all its flags
 instance Show Row where
@@ -60,12 +60,12 @@ instance Show Minesweeper where
 
 -- Test Data
 exampleBoard :: Board
-exampleBoard = Board [r [ u , u , u , u , u , u , u , u ,n 2]
-                     ,r [ u , u , u , u , u , u , u ,n 5, u ]
-                     ,r [ u , u , u , u , u , u , u , u ,n 9]
+exampleBoard = Board [r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
-                     ,r [ u , u , u ,n 4,n 1, u , u , u , u ]
-                     ,r [ u , u , u , u ,n 2, u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
+                     ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]
                      ,r [ u , u , u , u , u , u , u , u , u ]]
@@ -73,19 +73,31 @@ exampleBoard = Board [r [ u , u , u , u , u , u , u , u ,n 2]
                              n = Numeric
                              u = Unselected
 
+exampleBoard2 :: Board
+exampleBoard2 = Board [r [ u , u , u ]
+                      ,r [ u , u , u ]
+                      ,r [ u , u , u ]]
+                      where r = Row
+                            n = Numeric
+                            u = Unselected
+
 exampleBoardSize :: Int
 exampleBoardSize = 9
 
 exampleMines :: [Pos]
-exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in total
+exampleMines = [] -- 7 mines in total
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
+example2 = Minesweeper exampleBoard2 3 []
+
+cl :: Minesweeper -> Pos -> [Minesweeper]
+cl m p = map (clearSquare m) (getUncheckedPositions m p)
 
 clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p
   | hasHitMine m p = setValue m p Mine --set value to mine
   | n /= 0         = setValue m p (Numeric n) --show the number of mines in the local square
-  | otherwise      = cleared m p -- set the value to clear
+  | otherwise      = cleared' (setValue m p Clear) (getUncheckedPositions m p)
   where b = board m
         n = numMinesInSquare m p
 
@@ -98,11 +110,23 @@ cleared m p
 -- | Unveils the cells (and their neighbours if clear)
 cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
-cleared' m (p:ps)
+cleared' m ((y,x):ps)
   | getValue m p /= Unselected = cleared' m ps
-  | n == 0                     = cleared' (setValue m p Clear) (nub (ps ++ getSquarePositions m p))
+  | n == 0                     = cleared' clearPos ps
   | otherwise                  = cleared' (setValue m p (Numeric n)) ps
   where n = numMinesInSquare m p
+        squares = nub (ps ++ getSquarePositions m p)
+        clearPos = setValue m p Clear
+        p = (y,x)
+
+getUncheckedPositions :: Minesweeper -> Pos -> [Pos]
+getUncheckedPositions m p = getUncheckedPositions' m (getSquarePositions m p)
+
+getUncheckedPositions' :: Minesweeper -> [Pos] -> [Pos]
+getUncheckedPositions' m [] = []
+getUncheckedPositions' m (p:ps)
+  | getValue m p == Unselected = p : getUncheckedPositions' m ps
+  | otherwise                  = getUncheckedPositions' m ps
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
