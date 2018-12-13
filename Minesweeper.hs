@@ -37,8 +37,8 @@ data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos
 instance Show Flag where
   show (Numeric n) = " " ++ show n ++ " "
   show Unselected  = "[ ]"
-  show Flagged     = " F"
-  show Clear       = "   "
+  show Flagged     = " F "
+  show Clear       = " C "
   show Mine        = " * "
 
 -- | Prints a row, with all its flags
@@ -85,7 +85,7 @@ exampleBoardSize :: Int
 exampleBoardSize = 9
 
 exampleMines :: [Pos]
-exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3)] -- 7 mines in total
+exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3),(5,8)] -- 7 mines in total
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
 example2 = Minesweeper exampleBoard2 3 []
@@ -197,27 +197,9 @@ setValue m (y,x) flag = m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= 
 getValue :: Minesweeper -> Pos -> Flag
 getValue m (r,c) = flags (rows (board m) !! r) !! c
 
--- TODO Find a more efficent implementation of getSquarePositions
--- | Get a values immediate neighbour positions
 getSquarePositions :: Minesweeper -> Pos -> [Pos]
-getSquarePositions m (x2,y2)
-  | y3 >= bsize && x3 >= bsize = [(x1,y1),(x2,y1),(x1,y2)]
-  | y1 < 0 && x1 < 0           = [(x3,y2),(x2,y3),(x3,y3)]
-  | y3 >= bsize && x1 < 0      = [(x2,y1),(x3,y1),(x3,y2)]
-  | y1 < 0 && x3 >= bsize      = [(x1,y2),(x1,y3),(x2,y3)]
-  | y3 >= bsize                = [(x1,y1),(x2,y1),(x3,y1),(x1,y2),(x3,y2)]
-  | y1 < 0                     = [(x1,y2),(x3,y2),(x1,y3),(x2,y3),(x3,y3)]
-  | x3 >= bsize                = [(x1,y1),(x2,y1),(x1,y2),(x1,y3),(x2,y3)]
-  | x1 < 0                     = [(x2,y1),(x3,y1),(x3,y2),(x2,y3),(x3,y3)]
-  | otherwise                  = [(x1,y1),(x2,y1),(x3,y1),(x1,y2),(x3,y2),(x1,y3),(x2,y3),(x3,y3)]
+getSquarePositions m (y,x) = delete (y,x) [ (a,b) | b <- [(x - 1) .. (x + 1)], a <- [(y - 1) .. (y + 1)], b >= 0 && b < bsize, a >= 0 && a < bsize ]
   where bsize = boardSize m
-        (x1,x3,y1,y3) = (x2-1,x2+1,y2-1,y2+1)
-
-get1Coord :: Int -> Int -> [Int]
-get1Coord size x
-  | (x + 1) >= size = replicate 3 (x - 1) ++ replicate 3 x
-  | (x - 1) < 0     = replicate 3 x ++ replicate 3 (x + 1)
-  | otherwise       = replicate 3 (x - 1) ++ replicate 3 x ++ replicate 3 (x + 1)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MINESWEEPER CREATION ------------------------------------------------------------------------------------------------
@@ -238,5 +220,5 @@ mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
                 (y,g2) = randomR (0, bsize -1) g1
 
 -- | Make a new clear minesweeper board with randomised mine locations
-mkMineSweeper :: Int -> Int -> StdGen -> Minesweeper
-mkMineSweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
+mkMinesweeper :: Int -> Int -> StdGen -> Minesweeper
+mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)

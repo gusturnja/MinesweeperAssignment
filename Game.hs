@@ -13,7 +13,7 @@ main = do
   putStrLn "Please enter the number of mines"
   r_msize <- getLine
   let msize = read r_msize :: Int
-      m = mkMineSweeper bsize msize g
+      m = mkMinesweeper bsize msize g
   printBoard (board m)
   putStrLn "Thanks for playing!"
 
