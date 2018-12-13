@@ -128,6 +128,10 @@ getUncheckedPositions' m (p:ps)
   | getValue m p == Unselected = p : getUncheckedPositions' m ps
   | otherwise                  = getUncheckedPositions' m ps
 
+
+setFlagged :: Minesweeper -> Pos -> Minesweeper
+setFlagged m p = setValue m p Flagged
+
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
