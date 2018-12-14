@@ -83,9 +83,9 @@ checkMines ((y,x):ms) size = y >= 0 && y <= (size - 1) && x >= 0 && x <= (size -
 instance Show Flag where
   show (Numeric n) = " " ++ show n ++ " "
   show Unselected  = "[ ]"
-  show Flagged     = " ⚑ "
+  show Flagged     = " F "
   show Clear       = "   "
-  show Mine        = " 💣"
+  show Mine        = " * "
 
 -- | Prints a row, with all its flags
 instance Show Row where
@@ -285,4 +285,3 @@ mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocati
 ------------------------------------------------------------------------------------------------------------------------
 -- Property based testing ----------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
-
