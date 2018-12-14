@@ -37,9 +37,9 @@ data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos
 instance Show Flag where
   show (Numeric n) = " " ++ show n ++ " "
   show Unselected  = "[ ]"
-  show Flagged     = " F "
+  show Flagged     = " ⚑ "
   show Clear       = "   "
-  show Mine        = " * "
+  show Mine        = " 💣"
 
 -- | Prints a row, with all its flags
 instance Show Row where
@@ -98,26 +98,26 @@ clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p
   | hasHitMine m p = setValue m p Mine --set value to mine
   | n /= 0         = setValue m p (Numeric n) --show the number of mines in the local square
-  | otherwise      = cleared' (setValue m p Clear) (getUncheckedPositions m p)
+  | otherwise      = cleared m p
   where b = board m
         n = numMinesInSquare m p
 
 -- | Basically only makes a list, of size 1, of the position given and sends it to cleared'
 cleared :: Minesweeper -> Pos -> Minesweeper
 cleared m p
-  | getValue m p == Unselected = cleared' m [p]
+  | getValue m p == Unselected
+    || getValue m p == Flagged = cleared' m [p]
   | otherwise                  = m
 
 -- | Unveils the cells (and their neighbours if clear)
 cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
 cleared' m ((y,x):ps)
-  | getValue m p /= Unselected = cleared' m ps
-  | n == 0                     = cleared' clearPos (nub (ps ++ getUncheckedPositions m p))
+  | getValue m p /= Unselected
+    && getValue m p /= Flagged = cleared' m ps
+  | n == 0                     = cleared' (setValue m p Clear) (nub (ps ++ getUncheckedPositions m p))
   | otherwise                  = cleared' (setValue m p (Numeric n)) ps
   where n = numMinesInSquare m p
-        squares = nub (ps ++ getSquarePositions m p)
-        clearPos = setValue m p Clear
         p = (y,x)
 
 getUncheckedPositions :: Minesweeper -> Pos -> [Pos]
