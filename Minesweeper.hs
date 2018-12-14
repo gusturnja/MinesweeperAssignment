@@ -81,8 +81,8 @@ checkMines ((y,x):ms) size = y >= 0 && y <= (size - 1) && x >= 0 && x <= (size -
 ------------------------------------------------------------------------------------------------------------------------
 
 -- | Generate a random flag with equal amount of probablility for any valid value
-flag :: Gen Flag
-flag = frequency [(9, rNumericFlag), (4, rNonNumericFlag)]
+rFlag :: Gen Flag
+rFlag = frequency [(9, rNumericFlag), (4, rNonNumericFlag)]
 
 -- | Generate a random valid numeric flag
 rNumericFlag :: Gen Flag
@@ -92,9 +92,36 @@ rNumericFlag = elements [Numeric n | n <- [1..8]]
 rNonNumericFlag :: Gen Flag
 rNonNumericFlag = elements [Unselected, Flagged, Clear, Mine]
 
+-- | Generate a random list of flags, of a specified length
+rFlags :: Int -> Gen [Flag]
+rFlags i = vectorOf i rFlag
+
+-- | Genereate a random Minesweeper size between 3 and 20
+rSize :: Gen Int
+rSize = elements [3..20]
+
+-- | Generate a random row (not necessarily valid for the game)
+rRow :: Gen Row
+rRow = do i <- rSize
+          fs <- rFlags i
+          return (Row fs)
+
+-- | Generate a random row of specified length (not necessarily valid for the game)
+rRow' :: Int -> Gen Row
+rRow' i = do fs <- rFlags i
+             return (Row fs)
+
 ------------------------------------------------------------------------------------------------------------------------
 -- INSTANCES -----------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
+
+-- | Generate an arbitrary flag
+instance Arbitrary Flag where
+  arbitrary = rFlag
+
+-- | Generate an arbitrary row
+instance Arbitrary Row where
+  arbitrary = rRow
 
 -- | Print a flag
 instance Show Flag where
