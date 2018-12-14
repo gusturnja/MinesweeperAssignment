@@ -324,3 +324,13 @@ mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocati
 ------------------------------------------------------------------------------------------------------------------------
 -- Property based testing ----------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
+
+-- | Check if minesweeper is a minesweeper
+prop_minesweeper :: Minesweeper -> Bool
+prop_minesweeper m = undefined -- TODO
+
+-- | Check if clearSquare clears squares
+prop_clear_square :: Minesweeper -> Bool
+prop_clear_square m = undefined -- TODO
+
+-- >> TODO: Create other property tests
