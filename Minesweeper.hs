@@ -100,9 +100,9 @@ rNonNumericFlag = elements [Unselected, Flagged, Clear, Mine]
 instance Show Flag where
   show (Numeric n) = " " ++ show n ++ " "
   show Unselected  = "[ ]"
-  show Flagged     = " ⚑ "
+  show Flagged     = " F "
   show Clear       = "   "
-  show Mine        = " 💣"
+  show Mine        = " * "
 
 -- | Prints a row, with all its flags
 instance Show Row where
@@ -302,4 +302,3 @@ mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocati
 ------------------------------------------------------------------------------------------------------------------------
 -- Property based testing ----------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
-
