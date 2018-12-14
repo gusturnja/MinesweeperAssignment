@@ -20,6 +20,10 @@ The user wins the game if they have selected all tiles that are not mines
   (NOT if they have flagged all mine locations, otherwise flagging all locations would cause the user to win)
 -}
 
+------------------------------------------------------------------------------------------------------------------------
+-- DATA TYPES ----------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
 type Pos = (Int, Int) --row then column
 
 data Flag = Unselected | Flagged | Clear | Mine | Numeric Int
@@ -32,6 +36,48 @@ newtype Board = Board {rows :: [Row]}
   deriving Eq
 
 data Minesweeper = Minesweeper { board :: Board, boardSize :: Int, mines :: [Pos]}
+
+------------------------------------------------------------------------------------------------------------------------
+-- TYPE CHECKS ---------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Check if a flag is valid
+isFlag :: Flag -> Bool
+isFlag (Numeric n) = n >= 1 && n <= 8
+isFlag _           = True
+
+-- | Check if a row is valid
+isRow :: Row -> Bool
+isRow (Row [])     = True
+isRow (Row (f:fs)) = isFlag f && isRow (Row fs)
+
+-- | Check if a board is valid
+isBoard :: Board -> Bool
+isBoard (Board []) = True
+isBoard (Board rs) = isBoard' rs l
+  where l = length rs
+
+-- | Help function to check that the board is a square
+isBoard' :: [Row] -> Int -> Bool
+isBoard' []     _ = True
+isBoard' (r:rs) l = rl == l && isRow r && isBoard' rs l
+  where rl = length (flags r)
+
+-- | Check if a minesweeper is valid
+isMinesweeper :: Minesweeper -> Bool
+isMinesweeper (Minesweeper board size mines) = isBoard board && actualSize == size
+                                               && mineAmount == length (nub mines) && checkMines mines size
+  where actualSize = length (rows board)
+        mineAmount = length mines
+
+-- | Check if the mine placements are valid
+checkMines :: [Pos] -> Int -> Bool
+checkMines []     _    = True
+checkMines ((y,x):ms) size = y >= 0 && y <= (size - 1) && x >= 0 && x <= (size - 1) && checkMines ms size
+
+------------------------------------------------------------------------------------------------------------------------
+-- INSTANCES -----------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 -- | Print a flag
 instance Show Flag where
@@ -57,6 +103,10 @@ instance Show Board where
 instance Show Minesweeper where
   show (Minesweeper b s m)
     = show b ++ "\nBoard Size: " ++ show s ++ "\nMines: " ++ show m
+
+------------------------------------------------------------------------------------------------------------------------
+-- EXAMPLE TEST DATA ---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 -- Test Data
 exampleBoard :: Board
@@ -90,6 +140,10 @@ exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3),(5,8)] -- 7 mines in t
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
 example2 = Minesweeper exampleBoard2 3 []
+
+------------------------------------------------------------------------------------------------------------------------
+-- CELL CLEARING -------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 cl :: Minesweeper -> Pos -> [Minesweeper]
 cl m p = map (clearSquare m) (getUncheckedPositions m p)
@@ -227,3 +281,8 @@ mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
 -- | Make a new clear minesweeper board with randomised mine locations
 mkMinesweeper :: Int -> Int -> StdGen -> Minesweeper
 mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
+
+------------------------------------------------------------------------------------------------------------------------
+-- Property based testing ----------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
