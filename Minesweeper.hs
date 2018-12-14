@@ -106,6 +106,31 @@ rRow = do i <- rSize
           fs <- rFlags i
           return (Row fs)
 
+-- | Generate a random row, of specified size (not necessarily valid for the game)
+rRow' :: Int -> Gen Row
+rRow' i = do fs <- rFlags i
+             return (Row fs)
+
+-- | Generate a random list of rows, of a specified size
+rRows :: Int -> Gen [Row]
+rRows i = vectorOf i (rRow' i)
+
+-- | Generate a random board (not necessarily valid for the game)
+rBoard :: Gen Board
+rBoard = do i <- rSize
+            rs <- rRows i
+            return (Board rs)
+
+-- | Generate a random minesweeper (not necessarily valid for the game)
+rMinesweeper :: Gen Minesweeper
+rMinesweeper = do b <- rBoard
+                  let s = length (rows b)
+                  return (Minesweeper b s [])
+
+-- | Generate a random set of mines for a board of given size
+rMines :: Int -> Gen [Pos]
+rMines i = undefined
+
 ------------------------------------------------------------------------------------------------------------------------
 -- INSTANCES -----------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
@@ -117,6 +142,14 @@ instance Arbitrary Flag where
 -- | Generate an arbitrary row
 instance Arbitrary Row where
   arbitrary = rRow
+
+-- | Generate an arbitrary board
+instance Arbitrary Board where
+  arbitrary = rBoard
+
+-- | Generate an arbitrary minesweeper
+instance Arbitrary Minesweeper where
+  arbitrary = rMinesweeper
 
 -- | Print a flag
 instance Show Flag where
