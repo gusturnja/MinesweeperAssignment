@@ -1,6 +1,7 @@
 module Minesweeper where
 import System.Random
 import Data.List
+import Test.QuickCheck
 
 {-
 Definitions for developers benefit
@@ -76,6 +77,22 @@ checkMines []     _    = True
 checkMines ((y,x):ms) size = y >= 0 && y <= (size - 1) && x >= 0 && x <= (size - 1) && checkMines ms size
 
 ------------------------------------------------------------------------------------------------------------------------
+-- GENERATORS ----------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Generate a random flag with equal amount of probablility for any valid value
+flag :: Gen Flag
+flag = frequency [(9, rNumericFlag), (4, rNonNumericFlag)]
+
+-- | Generate a random valid numeric flag
+rNumericFlag :: Gen Flag
+rNumericFlag = elements [Numeric n | n <- [1..8]]
+
+-- | Generate a random valif non-numeric flag
+rNonNumericFlag :: Gen Flag
+rNonNumericFlag = elements [Unselected, Flagged, Clear, Mine]
+
+------------------------------------------------------------------------------------------------------------------------
 -- INSTANCES -----------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -142,7 +159,7 @@ example = Minesweeper exampleBoard exampleBoardSize exampleMines
 example2 = Minesweeper exampleBoard2 3 []
 
 ------------------------------------------------------------------------------------------------------------------------
--- CELL CLEARING -------------------------------------------------------------------------------------------------------
+-- SQUARE CLEARING -----------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
 cl :: Minesweeper -> Pos -> [Minesweeper]
