@@ -88,7 +88,7 @@ flag = frequency [(9, rNumericFlag), (4, rNonNumericFlag)]
 rNumericFlag :: Gen Flag
 rNumericFlag = elements [Numeric n | n <- [1..8]]
 
--- | Generate a random valif non-numeric flag
+-- | Generate a random valid non-numeric flag
 rNonNumericFlag :: Gen Flag
 rNonNumericFlag = elements [Unselected, Flagged, Clear, Mine]
 
