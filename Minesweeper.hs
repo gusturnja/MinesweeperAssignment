@@ -128,11 +128,7 @@ rBoard = do i <- rSize
 rMinesweeper :: Gen Minesweeper
 rMinesweeper = do b <- rBoard
                   let s = length (rows b)
-                  return (Minesweeper b s [])
-
--- | Generate a random set of mines for a board of given size
-rMines :: Int -> Gen [Pos]
-rMines i = undefined
+                  return (Minesweeper b s (getMines (rows b) 0))
 
 ------------------------------------------------------------------------------------------------------------------------
 -- INSTANCES -----------------------------------------------------------------------------------------------------------
@@ -334,6 +330,22 @@ getValue m (r,c) = flags (rows (board m) !! r) !! c
 getSquarePositions :: Minesweeper -> Pos -> [Pos]
 getSquarePositions m (y,x) = delete (y,x) [ (a,b) | b <- [(x - 1) .. (x + 1)], a <- [(y - 1) .. (y + 1)], b >= 0 && b < bsize, a >= 0 && a < bsize ]
   where bsize = boardSize m
+
+-- | Get a list for the mines' positions in a given board
+getMines :: [Row] -> Int -> [Pos]
+getMines []     _ = []
+getMines (r:rs) i | mineAmount > 0 = zip (replicate mineAmount i) xPoss ++ next
+                  | otherwise      = next
+  where xPoss      = getMines' (flags r) 0
+        mineAmount = length xPoss
+        next       = getMines rs (i+1)
+
+-- | Get a list for the mines' indexes in a given row
+getMines' :: [Flag] -> Int -> [Int]
+getMines' []     _             = []
+getMines' (f:fs) i | f == Mine = i : next
+                   | otherwise = next
+  where next = getMines' fs (i+1)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MINESWEEPER CREATION ------------------------------------------------------------------------------------------------
