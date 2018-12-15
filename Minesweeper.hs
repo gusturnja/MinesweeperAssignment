@@ -76,7 +76,8 @@ checkMines :: Minesweeper -> Bool
 checkMines (Minesweeper _ _ [])         = True
 checkMines (Minesweeper b s ((y,x):ms)) = y >= 0 && y <= (s - 1) && x >= 0 && x <= (s - 1)
                                           && (value == Unselected || value == Flagged || value == Mine)
-                                              where value = flags (rows b !! y) !! x
+                                          && checkMines (Minesweeper b s ms)
+                                            where value = flags (rows b !! y) !! x
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERATORS ----------------------------------------------------------------------------------------------------------
