@@ -128,7 +128,7 @@ rBoard = do i <- rSize
 rMinesweeper :: Gen Minesweeper
 rMinesweeper = do b <- rBoard
                   let s = length (rows b)
-                  return (Minesweeper b s (getMines (rows b) 0))
+                  return (Minesweeper b s (getMines b))
 
 ------------------------------------------------------------------------------------------------------------------------
 -- INSTANCES -----------------------------------------------------------------------------------------------------------
@@ -332,20 +332,24 @@ getSquarePositions m (y,x) = delete (y,x) [ (a,b) | b <- [(x - 1) .. (x + 1)], a
   where bsize = boardSize m
 
 -- | Get a list for the mines' positions in a given board
-getMines :: [Row] -> Int -> [Pos]
-getMines []     _ = []
-getMines (r:rs) i | mineAmount > 0 = zip (replicate mineAmount i) xPoss ++ next
-                  | otherwise      = next
-  where xPoss      = getMines' (flags r) 0
+getMines :: Board -> [Pos]
+getMines b = getMines' (rows b) 0
+
+-- | Get a list for the mines' positions in given rows
+getMines' :: [Row] -> Int -> [Pos]
+getMines' []     _ = []
+getMines' (r:rs) i | mineAmount > 0 = zip (replicate mineAmount i) xPoss ++ next
+                   | otherwise      = next
+  where xPoss      = getMines'' (flags r) 0
         mineAmount = length xPoss
-        next       = getMines rs (i+1)
+        next       = getMines' rs (i+1)
 
 -- | Get a list for the mines' indexes in a given row
-getMines' :: [Flag] -> Int -> [Int]
-getMines' []     _             = []
-getMines' (f:fs) i | f == Mine = i : next
-                   | otherwise = next
-  where next = getMines' fs (i+1)
+getMines'' :: [Flag] -> Int -> [Int]
+getMines'' []     _             = []
+getMines'' (f:fs) i | f == Mine = i : next
+                    | otherwise = next
+  where next = getMines'' fs (i+1)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MINESWEEPER CREATION ------------------------------------------------------------------------------------------------
@@ -373,9 +377,9 @@ mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocati
 -- Property based testing ----------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
--- | Check if minesweeper is a minesweeper
+-- | Check if given minesweeper is a minesweeper
 prop_minesweeper :: Minesweeper -> Bool
-prop_minesweeper m = undefined -- TODO
+prop_minesweeper m = isMinesweeper m
 
 -- | Check if clearSquare clears squares
 prop_clear_square :: Minesweeper -> Bool
