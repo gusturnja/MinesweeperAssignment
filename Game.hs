@@ -23,11 +23,11 @@ gameLoop m = do
               putStrLn ""
               printMinesweeper m
               if checkWin m
-              then do
+              then
                 putStrLn "Congrats, you win!"
-              else do
+              else
                 if checkLose m
-                then do
+                then
                   putStrLn "You lose!"
                 else do
                   putStrLn "c -    Clear a Cell"
@@ -37,7 +37,7 @@ gameLoop m = do
                   putStrLn "Please enter option"
                   input <- getLine
                   case input of
-                    "exit" -> do
+                    "exit" -> 
                       exitSuccess
                     "c" -> do
                       p <- inputCoord

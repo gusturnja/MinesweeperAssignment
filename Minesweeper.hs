@@ -338,17 +338,19 @@ getMines b = getMines' (rows b) 0
 -- | Get a list for the mines' positions in given rows
 getMines' :: [Row] -> Int -> [Pos]
 getMines' []     _ = []
-getMines' (r:rs) i | mineAmount > 0 = zip (replicate mineAmount i) xPoss ++ next
-                   | otherwise      = next
+getMines' (r:rs) i
+  | mineAmount > 0 = zip (replicate mineAmount i) xPoss ++ next
+  | otherwise      = next
   where xPoss      = getMines'' (flags r) 0
         mineAmount = length xPoss
         next       = getMines' rs (i+1)
 
 -- | Get a list for the mines' indexes in a given row
 getMines'' :: [Flag] -> Int -> [Int]
-getMines'' []     _             = []
-getMines'' (f:fs) i | f == Mine = i : next
-                    | otherwise = next
+getMines'' []     _ = []
+getMines'' (f:fs) i
+  | f == Mine = i : next
+  | otherwise = next
   where next = getMines'' fs (i+1)
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -379,7 +381,7 @@ mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocati
 
 -- | Check if given minesweeper is a minesweeper
 prop_minesweeper :: Minesweeper -> Bool
-prop_minesweeper m = isMinesweeper m
+prop_minesweeper = isMinesweeper
 
 -- | Check if clearSquare clears squares
 prop_clear_square :: Minesweeper -> Bool
