@@ -66,15 +66,17 @@ isBoard' (r:rs) l = rl == l && isRow r && isBoard' rs l
 
 -- | Check if a minesweeper is valid
 isMinesweeper :: Minesweeper -> Bool
-isMinesweeper (Minesweeper board size mines) = isBoard board && actualSize == size
-                                               && mineAmount == length (nub mines) && checkMines mines size
-  where actualSize = length (rows board)
-        mineAmount = length mines
+isMinesweeper (Minesweeper b s m) = isBoard b && actualSize == s
+                                    && mineAmount == length (nub m) && checkMines (Minesweeper b s m)
+  where actualSize = length (rows b)
+        mineAmount = length m
 
 -- | Check if the mine placements are valid
-checkMines :: [Pos] -> Int -> Bool
-checkMines []     _    = True
-checkMines ((y,x):ms) size = y >= 0 && y <= (size - 1) && x >= 0 && x <= (size - 1) && checkMines ms size
+checkMines :: Minesweeper -> Bool
+checkMines (Minesweeper _ _ [])         = True
+checkMines (Minesweeper b s ((y,x):ms)) = y >= 0 && y <= (s - 1) && x >= 0 && x <= (s - 1)
+                                          && (value == Unselected || value == Flagged || value == Mine)
+                                              where value = flags (rows b !! y) !! x
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERATORS ----------------------------------------------------------------------------------------------------------
