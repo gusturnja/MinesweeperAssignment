@@ -83,7 +83,7 @@ checkMines (Minesweeper b s ((y,x):ms)) = y >= 0 && y <= (s - 1) && x >= 0 && x 
 -- VALIDATION CHECKS ---------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
--- | Check if the flag a position of aminesweeper has a valid value
+-- | Check if the flag in a position of a minesweeper has a valid value
 isFlagValid :: Minesweeper -> Pos -> Bool
 isFlagValid m p -- Check if a square has a valid value
   | v == Clear && n == 0 = True
@@ -284,7 +284,7 @@ getUncheckedPositions' m (p:ps)
 setFlagged :: Minesweeper -> Pos -> Minesweeper
 setFlagged m p = setValue m p Flagged
 
--- | Reveals the values of an entire minesweeper
+-- | Reveals the values of an minesweeper
 reveal :: Minesweeper -> Minesweeper
 reveal m = reveal' m (0,0)
 
@@ -427,8 +427,8 @@ prop_clear_square 0 0 g = prop_clear_square 1 0 g
 prop_clear_square a b g
   |  i > j    = prop_clear_square' i j g -- Make sure the bigger value is the board size
   | otherwise = prop_clear_square' j i g
-    where i = abs a -- Makes sure that no negative values for board
-          j = abs b -- size and mine amount appears
+    where i = abs a -- Makes sure that no negative values appears for board size and mine amount
+          j = abs b
 
 prop_clear_square' :: Int -> Int -> Int -> Bool
 prop_clear_square' bsize numMines g = isValidMinesweeper m
