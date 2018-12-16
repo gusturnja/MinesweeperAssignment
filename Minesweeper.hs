@@ -80,6 +80,32 @@ checkMines (Minesweeper b s ((y,x):ms)) = y >= 0 && y <= (s - 1) && x >= 0 && x 
                                             where value = flags (rows b !! y) !! x
 
 ------------------------------------------------------------------------------------------------------------------------
+-- VALIDATION CHECKS ---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Check if the flag a position of aminesweeper has a valid value
+isFlagValid :: Minesweeper -> Pos -> Bool
+isFlagValid m p -- Check if a square has a valid value
+  | v == Clear && n == 0 = True
+  | v == Numeric n       = True
+  | v == Mine            = hasHitMine m p
+  | otherwise            = False
+    where n = numMinesInSquare m p
+          v = getValue m p
+
+-- | Check if a minesweeper, when revealed, contains only valid values
+isValidMinesweeper :: Minesweeper -> Bool
+isValidMinesweeper m = isValidMinesweeper' (reveal m) (0,0) -- Reveals the minesweeper
+
+isValidMinesweeper' :: Minesweeper -> Pos -> Bool
+isValidMinesweeper' m (y,x) -- Check if each square has a valid value
+  | x /= maxIndex = isValid && isValidMinesweeper' m (y,x+1)
+  | y /= maxIndex = isValid && isValidMinesweeper' m (y+1,0)
+  | otherwise     = isValid
+    where maxIndex  = boardSize m - 1
+          isValid   = isFlagValid m (y,x)
+
+------------------------------------------------------------------------------------------------------------------------
 -- GENERATORS ----------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -230,20 +256,20 @@ clearSquare m p
 -- | Basically only makes a list, of size 1, of the position given and sends it to cleared'
 cleared :: Minesweeper -> Pos -> Minesweeper
 cleared m p
-  | getValue m p == Unselected
-    || getValue m p == Flagged = cleared' m [p]
-  | otherwise                  = m
+  | v == Unselected || v == Flagged = cleared' m [p]
+  | otherwise                       = m
+    where v = getValue m p
 
 -- | Unveils the cells (and their neighbours if clear)
 cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
 cleared' m ((y,x):ps)
-  | getValue m p /= Unselected
-    && getValue m p /= Flagged = cleared' m ps
-  | n == 0                     = cleared' (setValue m p Clear) (nub (ps ++ getUncheckedPositions m p))
-  | otherwise                  = cleared' (setValue m p (Numeric n)) ps
-  where n = numMinesInSquare m p
-        p = (y,x)
+  | v /= Unselected && v /= Flagged = cleared' m ps
+  | n == 0                          = cleared' (setValue m p Clear) (nub (ps ++ getUncheckedPositions m p))
+  | otherwise                       = cleared' (setValue m p (Numeric n)) ps
+    where v = getValue m p
+          n = numMinesInSquare m p
+          p = (y,x)
 
 getUncheckedPositions :: Minesweeper -> Pos -> [Pos]
 getUncheckedPositions m p = getUncheckedPositions' m (getSquarePositions m p)
@@ -251,12 +277,24 @@ getUncheckedPositions m p = getUncheckedPositions' m (getSquarePositions m p)
 getUncheckedPositions' :: Minesweeper -> [Pos] -> [Pos]
 getUncheckedPositions' m [] = []
 getUncheckedPositions' m (p:ps)
-  | getValue m p == Unselected = p : getUncheckedPositions' m ps
-  | otherwise                  = getUncheckedPositions' m ps
-
+  | v == Unselected || v == Flagged = p : getUncheckedPositions' m ps
+  | otherwise                       = getUncheckedPositions' m ps
+    where v = getValue m p
 
 setFlagged :: Minesweeper -> Pos -> Minesweeper
 setFlagged m p = setValue m p Flagged
+
+-- | Reveals the values of an entire minesweeper
+reveal :: Minesweeper -> Minesweeper
+reveal m = reveal' m (0,0)
+
+reveal' :: Minesweeper -> Pos -> Minesweeper
+reveal' m (y,x)
+  | x /= maxIndex = reveal' clearNext (y,x+1)
+  | y /= maxIndex = reveal' clearNext (y+1,0)
+  | otherwise     = clearNext
+    where maxIndex  = boardSize m - 1
+          clearNext = clearSquare m (y,x)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GET BOARD POSITIONS -------------------------------------------------------------------------------------------------
@@ -383,8 +421,17 @@ mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocati
 prop_minesweeper :: Minesweeper -> Bool
 prop_minesweeper = isMinesweeper
 
--- | Check if clearSquare clears squares
-prop_clear_square :: Minesweeper -> Bool
-prop_clear_square m = undefined -- TODO
+-- | Check if clearSquare clears squares, in random minesweeper, in valid manner
+prop_clear_square :: Int -> Int -> Int -> Bool
+prop_clear_square 0 0 g = prop_clear_square 1 0 g
+prop_clear_square a b g
+  |  i > j    = prop_clear_square' i j g -- Make sure the bigger value is the board size
+  | otherwise = prop_clear_square' j i g
+    where i = abs a -- Makes sure that no negative values for board
+          j = abs b -- size and mine amount appears
+
+prop_clear_square' :: Int -> Int -> Int -> Bool
+prop_clear_square' bsize numMines g = isValidMinesweeper m
+  where m = mkMinesweeper bsize numMines (mkStdGen g) -- Generates a random minesweeper
 
 -- >> TODO: Create other property tests
