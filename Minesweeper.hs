@@ -1,6 +1,7 @@
 module Minesweeper where
 import System.Random
 import Data.List
+import Data.Char
 import Test.QuickCheck
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -295,6 +296,50 @@ mkMineLocations bsize numPos g = nub $ getLocations bsize numPos g
 -- | Make a new clear minesweeper board with randomised mine locations
 mkMinesweeper :: Int -> Int -> StdGen -> Minesweeper
 mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
+
+------------------------------------------------------------------------------------------------------------------------
+-- READ/WRITE FILE -----------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Transfer a given string into a valid row
+parseToRow :: String -> Row
+parseToRow s = Row (parseToRow' s)
+
+parseToRow' :: String -> [Flag]
+parseToRow' [] = []
+parseToRow' (a : (b : (c :cs)))
+  | f == show Unselected  = Unselected             : parseToRow' cs
+  | f == show Flagged     = Flagged                : parseToRow' cs
+  | f == show Clear       = Clear                  : parseToRow' cs
+  | f == show Mine        = Mine                   : parseToRow' cs
+  | otherwise             = Numeric (digitToInt b) : parseToRow' cs
+    where f = [a, b, c]
+
+-- | Transfer a given string into a valid list of mine positions
+parseToPos :: String -> [Pos]
+parseToPos []         = []
+parseToPos (y:(x:is)) = (digitToInt y, digitToInt x) : parseToPos is
+
+-- | Read a minesweeper from a given filepath
+readMinesweeper :: FilePath -> IO Minesweeper
+readMinesweeper fp = do
+  contents <- readFile fp
+  let ls = lines contents
+  let len   = length ls - 1
+  let rows  = take len ls
+  let mines = ls !! len
+  return (Minesweeper (Board (map parseToRow rows)) (len - 1) (parseToPos mines))
+
+-- | Transfer a given list of mine positions to a string
+posToString :: [Pos] -> String
+posToString []         = []
+posToString ((y,x):is) = [intToDigit y, intToDigit x] ++ posToString is
+
+-- | Write a minesweeper to a given filepath
+writeMinesweeper :: FilePath -> Minesweeper -> IO ()
+writeMinesweeper fp (Minesweeper b _ m) = writeFile fp contents
+  where contents = show b ++ "\n" ++ posToString m
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- INSTANCES -----------------------------------------------------------------------------------------------------------
