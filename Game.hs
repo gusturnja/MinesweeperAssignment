@@ -29,12 +29,13 @@ gameLoop m = do
                 putStrLn "Congrats, you win!"
               else
                 if checkLose m
-                then
+                then do
                   printMinesweeper (reveal m)
                   putStrLn "You lose!"
                 else do
                   putStrLn "c -    Clear a Cell"
                   putStrLn "f -     Flag a Cell"
+                  putStrLn "u -   Remove a Flag"
                   putStrLn "exit -         Quit"
                   putStrLn "Please enter option"
                   input <- getLine
@@ -47,8 +48,22 @@ gameLoop m = do
                       gameLoop newm
                     "f" -> do
                       p <- inputCoord
-                      let newm = setFlagged m p
-                      gameLoop newm
+                      if getValue m p /= Unselected
+                      then do
+                        putStrLn "Cannot set flag here"
+                        gameLoop m
+                      else do
+                        let newm = setFlagged m p
+                        gameLoop newm
+                    "u" -> do
+                      p <- inputCoord
+                      if getValue m p /= Flagged
+                      then do
+                        putStrLn "There is no flag to unflag here"
+                        gameLoop m
+                      else do
+                        let newm = setUnflagged m p
+                        gameLoop newm
                     _ -> do
                       putStrLn "I'm sorry, please enter either c, f , help or exit"
                       gameLoop m

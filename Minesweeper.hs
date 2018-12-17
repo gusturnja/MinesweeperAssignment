@@ -274,6 +274,9 @@ getUncheckedPositions' m (p:ps)
 setFlagged :: Minesweeper -> Pos -> Minesweeper
 setFlagged m p = setValue m p Flagged
 
+setUnflagged :: Minesweeper -> Pos -> Minesweeper
+setUnflagged m p = setValue m p Unselected
+
 -- | Reveals the values of an minesweeper
 reveal :: Minesweeper -> Minesweeper
 reveal m = reveal' m (0,0)
