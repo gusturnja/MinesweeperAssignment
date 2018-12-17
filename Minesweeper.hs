@@ -3,24 +3,6 @@ import System.Random
 import Data.List
 import Test.QuickCheck
 
-{-
-Definitions for developers benefit
-
-A minesweeper board size is set by the user, n. A board is therefore defined as being n tiles wide and n tiles high
-
-A tile can take multiple forms.
-  - A user can "flag" a tile, this means they believe that there is a mine at this tiles location.
-  - A user can select to clear a tile, if the tile is revealed to be a mine, the user loses the game.
-    However, if it is not a mine, the number of mines in the surrounding tiles are shown at the selected tiles location.
-    If there are not bombs in the local area, the tile must be clear.
-    Surrounding tiles must then also be checked if they are clear of bombs and their surrounding tiles must be checks so on and so forth.
-
-Mines are placed at random locations around the board at the start and are not revealed until the end of the game.
-
-The user wins the game if they have selected all tiles that are not mines
-  (NOT if they have flagged all mine locations, otherwise flagging all locations would cause the user to win)
--}
-
 ------------------------------------------------------------------------------------------------------------------------
 -- DATA TYPES ----------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
@@ -106,102 +88,6 @@ isValidMinesweeper' m (y,x) -- Check if each square has a valid value
           isValid   = isFlagValid m (y,x)
 
 ------------------------------------------------------------------------------------------------------------------------
--- GENERATORS ----------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------
-
--- | Generate a random flag with equal amount of probablility for any valid value
-rFlag :: Gen Flag
-rFlag = frequency [(9, rNumericFlag), (4, rNonNumericFlag)]
-
--- | Generate a random valid numeric flag
-rNumericFlag :: Gen Flag
-rNumericFlag = elements [Numeric n | n <- [1..8]]
-
--- | Generate a random valid non-numeric flag
-rNonNumericFlag :: Gen Flag
-rNonNumericFlag = elements [Unselected, Flagged, Clear, Mine]
-
--- | Generate a random list of flags, of a specified length
-rFlags :: Int -> Gen [Flag]
-rFlags i = vectorOf i rFlag
-
--- | Genereate a random Minesweeper size between 3 and 20
-rSize :: Gen Int
-rSize = elements [3..20]
-
--- | Generate a random row (not necessarily valid for the game)
-rRow :: Gen Row
-rRow = do i <- rSize
-          fs <- rFlags i
-          return (Row fs)
-
--- | Generate a random row, of specified size (not necessarily valid for the game)
-rRow' :: Int -> Gen Row
-rRow' i = do fs <- rFlags i
-             return (Row fs)
-
--- | Generate a random list of rows, of a specified size
-rRows :: Int -> Gen [Row]
-rRows i = vectorOf i (rRow' i)
-
--- | Generate a random board (not necessarily valid for the game)
-rBoard :: Gen Board
-rBoard = do i <- rSize
-            rs <- rRows i
-            return (Board rs)
-
--- | Generate a random minesweeper (not necessarily valid for the game)
-rMinesweeper :: Gen Minesweeper
-rMinesweeper = do b <- rBoard
-                  let s = length (rows b)
-                  return (Minesweeper b s (getMines b))
-
-------------------------------------------------------------------------------------------------------------------------
--- INSTANCES -----------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------
-
--- | Generate an arbitrary flag
-instance Arbitrary Flag where
-  arbitrary = rFlag
-
--- | Generate an arbitrary row
-instance Arbitrary Row where
-  arbitrary = rRow
-
--- | Generate an arbitrary board
-instance Arbitrary Board where
-  arbitrary = rBoard
-
--- | Generate an arbitrary minesweeper
-instance Arbitrary Minesweeper where
-  arbitrary = rMinesweeper
-
--- | Print a flag
-instance Show Flag where
-  show (Numeric n) = " " ++ show n ++ " "
-  show Unselected  = "[ ]"
-  show Flagged     = " F "
-  show Clear       = "   "
-  show Mine        = " * "
-
--- | Prints a row, with all its flags
-instance Show Row where
-  show r | null (flags r) = ""
-         | otherwise      = show x ++ show (Row xs)
-           where (x:xs) = flags r
-
--- | Prints a board, with all its flags in their rows
-instance Show Board where
-  show b | null (rows b) = ""
-         | otherwise     = show x ++ "\n" ++ show (Board xs)
-           where (x:xs) = rows b
-
--- | Prints the board, the size and the mine. (Should probably be updated to show all the values, like a cheat)
-instance Show Minesweeper where
-  show (Minesweeper b s m)
-    = show b ++ "\nBoard Size: " ++ show s ++ "\nMines: " ++ show m
-
-------------------------------------------------------------------------------------------------------------------------
 -- EXAMPLE TEST DATA ---------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -261,6 +147,7 @@ cleared' m ((y,x):ps)
           n = numMinesInSquare m p
           p = (y,x)
 
+-- | Get a list of the positions in a given positions immediate area on the condition that they are flagged or unselected
 getUncheckedPositions :: Minesweeper -> Pos -> [Pos]
 getUncheckedPositions m p = getUncheckedPositions' m (getSquarePositions m p)
 
@@ -271,11 +158,13 @@ getUncheckedPositions' m (p:ps)
   | otherwise                       = getUncheckedPositions' m ps
     where v = getValue m p
 
+-- | Set a position as flagged
 setFlagged :: Minesweeper -> Pos -> Minesweeper
 setFlagged m p = setValue m p Flagged
 
-setUnflagged :: Minesweeper -> Pos -> Minesweeper
-setUnflagged m p = setValue m p Unselected
+-- | Set a position as unselected
+setUnselected :: Minesweeper -> Pos -> Minesweeper
+setUnselected m p = setValue m p Unselected
 
 -- | Reveals the values of an minesweeper
 reveal :: Minesweeper -> Minesweeper
@@ -358,6 +247,7 @@ setValue m (y,x) flag = m { board = Board (rs !!= (y , Row (flags (rs !! y) !!= 
 getValue :: Minesweeper -> Pos -> Flag
 getValue m (r,c) = flags (rows (board m) !! r) !! c
 
+-- | Get the list of positions of the cells in a given positions immediate area, not including the given position
 getSquarePositions :: Minesweeper -> Pos -> [Pos]
 getSquarePositions m (y,x) = delete (y,x) [ (a,b) | b <- [(x - 1) .. (x + 1)], a <- [(y - 1) .. (y + 1)], b >= 0 && b < bsize, a >= 0 && a < bsize ]
   where bsize = boardSize m
@@ -407,6 +297,102 @@ mkMinesweeper :: Int -> Int -> StdGen -> Minesweeper
 mkMinesweeper bsize numMines g = Minesweeper (mkBoard bsize) bsize (mkMineLocations bsize numMines g)
 
 ------------------------------------------------------------------------------------------------------------------------
+-- INSTANCES -----------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Generate an arbitrary flag
+instance Arbitrary Flag where
+  arbitrary = rFlag
+
+-- | Generate an arbitrary row
+instance Arbitrary Row where
+  arbitrary = rRow
+
+-- | Generate an arbitrary board
+instance Arbitrary Board where
+  arbitrary = rBoard
+
+-- | Generate an arbitrary minesweeper
+instance Arbitrary Minesweeper where
+  arbitrary = rMinesweeper
+
+-- | Print a flag
+instance Show Flag where
+  show (Numeric n) = " " ++ show n ++ " "
+  show Unselected  = "[ ]"
+  show Flagged     = " F "
+  show Clear       = "   "
+  show Mine        = " * "
+
+-- | Prints a row, with all its flags
+instance Show Row where
+  show r | null (flags r) = ""
+         | otherwise      = show x ++ show (Row xs)
+           where (x:xs) = flags r
+
+-- | Prints a board, with all its flags in their rows
+instance Show Board where
+  show b | null (rows b) = ""
+         | otherwise     = show x ++ "\n" ++ show (Board xs)
+           where (x:xs) = rows b
+
+-- | Prints the board, the size and the mine. (Should probably be updated to show all the values, like a cheat)
+instance Show Minesweeper where
+  show (Minesweeper b s m)
+    = show b ++ "\nBoard Size: " ++ show s ++ "\nMines: " ++ show m
+
+------------------------------------------------------------------------------------------------------------------------
+-- GENERATORS ----------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Generate a random flag with equal amount of probablility for any valid value
+rFlag :: Gen Flag
+rFlag = frequency [(9, rNumericFlag), (4, rNonNumericFlag)]
+
+-- | Generate a random valid numeric flag
+rNumericFlag :: Gen Flag
+rNumericFlag = elements [Numeric n | n <- [1..8]]
+
+-- | Generate a random valid non-numeric flag
+rNonNumericFlag :: Gen Flag
+rNonNumericFlag = elements [Unselected, Flagged, Clear, Mine]
+
+-- | Generate a random list of flags, of a specified length
+rFlags :: Int -> Gen [Flag]
+rFlags i = vectorOf i rFlag
+
+-- | Genereate a random Minesweeper size between 3 and 20
+rSize :: Gen Int
+rSize = elements [3..20]
+
+-- | Generate a random row (not necessarily valid for the game)
+rRow :: Gen Row
+rRow = do i <- rSize
+          fs <- rFlags i
+          return (Row fs)
+
+-- | Generate a random row, of specified size (not necessarily valid for the game)
+rRow' :: Int -> Gen Row
+rRow' i = do fs <- rFlags i
+             return (Row fs)
+
+-- | Generate a random list of rows, of a specified size
+rRows :: Int -> Gen [Row]
+rRows i = vectorOf i (rRow' i)
+
+-- | Generate a random board (not necessarily valid for the game)
+rBoard :: Gen Board
+rBoard = do i <- rSize
+            rs <- rRows i
+            return (Board rs)
+
+-- | Generate a random minesweeper (not necessarily valid for the game)
+rMinesweeper :: Gen Minesweeper
+rMinesweeper = do b <- rBoard
+                  let s = length (rows b)
+                  return (Minesweeper b s (getMines b))
+
+------------------------------------------------------------------------------------------------------------------------
 -- PROPERTY BASED TESTS ------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -428,5 +414,3 @@ prop_clear_square' bsize numMines g = isValidMinesweeper m
   where m = mkMinesweeper bsize numMines (mkStdGen g) -- Generates a random minesweeper
 
 fewerChecks prop = quickCheckWith stdArgs{ maxSuccess = 30 } prop
-
--- >> TODO: Create other property tests

@@ -62,7 +62,7 @@ gameLoop m = do
                         putStrLn "There is no flag to unflag here"
                         gameLoop m
                       else do
-                        let newm = setUnflagged m p
+                        let newm = setUnselected m p
                         gameLoop newm
                     _ -> do
                       putStrLn "I'm sorry, please enter either c, f , help or exit"
