@@ -6,17 +6,32 @@ import System.Exit
 
 -- | Create a new minesweeper and being the game loop
 main = do
-  g <- newStdGen
   putStrLn "Welcome To MineSweeper!"
-  putStrLn "Please enter desired board size:"
-  r_bsize <- getLine
-  let bsize = read r_bsize :: Int
-  putStrLn $ "Selected " ++ show bsize ++ " as board size"
-  putStrLn "Please enter the number of mines"
-  r_msize <- getLine
-  let msize = read r_msize :: Int
-      m = mkMinesweeper bsize msize g
-  gameLoop m
+  main'
+
+main' = do
+  g <- newStdGen
+  putStrLn "Do you want to load a saved game? (y/n)"
+  load <- getLine
+  case load of
+    "y" -> do
+      putStrLn "Please enter filepath:"
+      fp <- getLine
+      m <- readMinesweeper fp
+      gameLoop m
+    "n" -> do
+      putStrLn "Please enter desired board size:"
+      r_bsize <- getLine
+      let bsize = read r_bsize :: Int
+      putStrLn $ "Selected " ++ show bsize ++ " as board size"
+      putStrLn "Please enter the number of mines"
+      r_msize <- getLine
+      let msize = read r_msize :: Int
+      let m = mkMinesweeper bsize msize g
+      gameLoop m
+    _ -> do
+      putStrLn "I'm sorry, please enter either y or n"
+      main'
   putStrLn "Thanks for playing!"
 
 -- | Loop the game until the user either wins, loses or exits the game
@@ -36,12 +51,19 @@ gameLoop m = do
                   putStrLn "c -    Clear a Cell"
                   putStrLn "f -     Flag a Cell"
                   putStrLn "u -   Remove a Flag"
+                  putStrLn "save - Save Progres"
                   putStrLn "exit -         Quit"
                   putStrLn "Please enter option"
                   input <- getLine
                   case input of
                     "exit" ->
                       exitSuccess
+                    "save" -> do
+                      putStrLn "Enter save name:"
+                      fp <- getLine
+                      writeMinesweeper fp m
+                      putStrLn ("Game saved as: \"" ++ fp ++ "\"")
+                      gameLoop m
                     "c" -> do
                       p <- inputCoord
                       let newm = clearSquare m p
