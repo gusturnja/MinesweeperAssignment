@@ -18,7 +18,7 @@ main' = do
       putStrLn "Please enter filepath:"
       fp <- getLine
       m <- readMinesweeper fp
-      gameLoop m
+      loadSave fp m
     "n" -> do
       putStrLn "Please enter desired board size:"
       r_bsize <- getLine
@@ -33,6 +33,13 @@ main' = do
       putStrLn "I'm sorry, please enter either y or n"
       main'
   putStrLn "Thanks for playing!"
+
+-- | Loads a minesweeper
+loadSave :: String -> Maybe Minesweeper -> IO ()
+loadSave fp Nothing = do
+  putStrLn ("File: \"" ++ fp ++ "\", does not exist!")
+  main'
+loadSave _ (Just m) = gameLoop m
 
 -- | Loop the game until the user either wins, loses or exits the game
 gameLoop :: Minesweeper -> IO ()

@@ -3,6 +3,7 @@ import System.Random
 import Data.List
 import Data.Char
 import Test.QuickCheck
+import System.Posix.Files
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DATA TYPES ----------------------------------------------------------------------------------------------------------
@@ -321,14 +322,18 @@ parseToPos []         = []
 parseToPos (y:(x:is)) = (digitToInt y, digitToInt x) : parseToPos is
 
 -- | Read a minesweeper from a given filepath
-readMinesweeper :: FilePath -> IO Minesweeper
+readMinesweeper :: FilePath -> IO (Maybe Minesweeper)
 readMinesweeper fp = do
-  contents <- readFile fp
-  let ls = lines contents
-  let len   = length ls - 1
-  let rows  = take len ls
-  let mines = ls !! len
-  return (Minesweeper (Board (map parseToRow rows)) (len - 1) (parseToPos mines))
+  exists <- fileExist fp
+  if exists then do
+    contents <- readFile fp
+    let ls = lines contents
+    let len   = length ls - 1
+    let rows  = take len ls
+    let mines = ls !! len
+    return (Just (Minesweeper (Board (map parseToRow rows)) (len - 1) (parseToPos mines)))
+  else
+    return Nothing
 
 -- | Transfer a given list of mine positions to a string
 posToString :: [Pos] -> String
