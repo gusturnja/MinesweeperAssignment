@@ -17,7 +17,6 @@ main = do
   let msize = read r_msize :: Int
       m = mkMinesweeper bsize msize g
   gameLoop m
-  printMinesweeper (reveal m)
   putStrLn "Thanks for playing!"
 
 -- | Loop the game until the user either wins, loses or exits the game
@@ -31,6 +30,7 @@ gameLoop m = do
               else
                 if checkLose m
                 then
+                  printMinesweeper (reveal m)
                   putStrLn "You lose!"
                 else do
                   putStrLn "c -    Clear a Cell"
