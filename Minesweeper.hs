@@ -386,7 +386,7 @@ instance Show Board where
          | otherwise     = show x ++ "\n" ++ show (Board xs)
            where (x:xs) = rows b
 
--- | Prints the board, the size and the mine. (Should probably be updated to show all the values, like a cheat)
+-- | Prints the board, the size and the mine
 instance Show Minesweeper where
   show (Minesweeper b s m)
     = show b ++ "\nBoard Size: " ++ show s ++ "\nMines: " ++ show m

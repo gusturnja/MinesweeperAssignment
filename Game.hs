@@ -111,8 +111,8 @@ inputCoord = do
 -- | Print a given minesweeper board with index values across the top and left side of the board
 printMinesweeper :: Minesweeper -> IO ()
 printMinesweeper m = do
-                        putStrLn $ "  | " ++ printTopRow range
-                        putStrLn ("--|-" ++ concat (replicate bsize "---"))
+                        putStrLn $ printTopRow range ++ " | "
+                        putStrLn (concat (replicate bsize "---") ++ "-|--")
                         putStrLn $ printBoard $ zip range (rows b)
                         where
                           b = board m
@@ -122,9 +122,10 @@ printMinesweeper m = do
 -- | Print the index, a seperator and then the board row, repeat for all rows
 printBoard :: [(Int,Row)] -> String
 printBoard [] = ""
-printBoard ((x,r):rs) = show x ++ " | " ++ show r ++ "\n" ++ printBoard rs
+printBoard ((x,r):rs) = show r ++ " | " ++ show x ++ "\n" ++ printBoard rs
 
 -- | Print the top row of indexes
 printTopRow :: [Int] -> String
 printTopRow [] = ""
-printTopRow (x:xs) = " " ++ show x ++ " " ++ printTopRow xs
+printTopRow (x:xs) = pref  ++ show x ++ " " ++ printTopRow xs
+  where pref = replicate (1 - div x 10) ' ' -- Make sure the digits required to write the column index matches board
