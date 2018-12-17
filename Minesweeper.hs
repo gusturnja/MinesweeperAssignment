@@ -221,14 +221,6 @@ exampleBoard = Board [r [ u , u , u , u , u , u , u , u , u ]
                              u = Unselected
                              f = Flagged
 
-exampleBoard2 :: Board
-exampleBoard2 = Board [r [ u , u , u ]
-                      ,r [ u , u , u ]
-                      ,r [ u , u , u ]]
-                      where r = Row
-                            n = Numeric
-                            u = Unselected
-
 exampleBoardSize :: Int
 exampleBoardSize = 9
 
@@ -236,7 +228,6 @@ exampleMines :: [Pos]
 exampleMines = [(0,0),(1,0),(5,6),(7,2),(2,4),(5,1),(3,3),(5,8)] -- 7 mines in total
 
 example = Minesweeper exampleBoard exampleBoardSize exampleMines
-example2 = Minesweeper exampleBoard2 3 []
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SQUARE CLEARING -----------------------------------------------------------------------------------------------------
@@ -264,7 +255,6 @@ cleared m p
 cleared' :: Minesweeper -> [Pos] -> Minesweeper
 cleared' m [] = m
 cleared' m ((y,x):ps)
-  | v /= Unselected && v /= Flagged = cleared' m ps
   | n == 0                          = cleared' (setValue m p Clear) (nub (ps ++ getUncheckedPositions m p))
   | otherwise                       = cleared' (setValue m p (Numeric n)) ps
     where v = getValue m p
