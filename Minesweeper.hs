@@ -242,9 +242,6 @@ example2 = Minesweeper exampleBoard2 3 []
 -- SQUARE CLEARING -----------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
-cl :: Minesweeper -> Pos -> [Minesweeper]
-cl m p = map (clearSquare m) (getUncheckedPositions m p)
-
 clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p
   | hasHitMine m p = setValue m p Mine --set value to mine
