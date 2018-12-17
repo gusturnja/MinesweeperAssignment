@@ -242,6 +242,9 @@ example2 = Minesweeper exampleBoard2 3 []
 -- SQUARE CLEARING -----------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
+-- | Given a position on the board, attempt to clear it. If theres mines in its immediate square, set the position to show the number of mines.
+--   If the position matches an element within the list of mines, set it to show that the user has hit a mine.
+--   Otherwise, set it to blanks and recursively check all the other immediate squares for blanks
 clearSquare :: Minesweeper -> Pos -> Minesweeper
 clearSquare m p
   | hasHitMine m p = setValue m p Mine --set value to mine
@@ -430,5 +433,7 @@ prop_clear_square a b g
 prop_clear_square' :: Int -> Int -> Int -> Bool
 prop_clear_square' bsize numMines g = isValidMinesweeper m
   where m = mkMinesweeper bsize numMines (mkStdGen g) -- Generates a random minesweeper
+
+fewerChecks prop = quickCheckWith stdArgs{ maxSuccess = 30 } prop
 
 -- >> TODO: Create other property tests
