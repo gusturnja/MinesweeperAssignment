@@ -33,11 +33,10 @@ gameLoop m = do
                   putStrLn "c -    Clear a Cell"
                   putStrLn "f -     Flag a Cell"
                   putStrLn "exit -         Quit"
-                  putStrLn "help -  How to play"
                   putStrLn "Please enter option"
                   input <- getLine
                   case input of
-                    "exit" -> 
+                    "exit" ->
                       exitSuccess
                     "c" -> do
                       p <- inputCoord
@@ -47,9 +46,6 @@ gameLoop m = do
                       p <- inputCoord
                       let newm = setFlagged m p
                       gameLoop newm
-                    "help" -> do
-                      putStrLn "Welcome to Minesweeper ........."
-                      gameLoop m
                     _ -> do
                       putStrLn "I'm sorry, please enter either c, f , help or exit"
                       gameLoop m
