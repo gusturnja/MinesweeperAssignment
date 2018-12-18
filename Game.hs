@@ -27,7 +27,7 @@ main' = do
       putStrLn "Please enter the number of mines"
       r_msize <- getLine
       let msize = read r_msize :: Int
-      let m = mkMinesweeper bsize msize g
+          m = mkMinesweeper bsize msize g
       gameLoop m
     _ -> do
       putStrLn "I'm sorry, please enter either y or n"
@@ -39,7 +39,9 @@ loadSave :: String -> Maybe Minesweeper -> IO ()
 loadSave fp Nothing = do
   putStrLn ("File: \"" ++ fp ++ "\", does not exist!")
   main'
-loadSave _ (Just m) = gameLoop m
+loadSave _ (Just m)
+  | isMinesweeper m = gameLoop m
+  | otherwise = putStrLn "Invalid minesweeper, quitting..."
 
 -- | Loop the game until the user either wins, loses or exits the game
 gameLoop :: Minesweeper -> IO ()
@@ -58,7 +60,7 @@ gameLoop m = do
                   putStrLn "c -    Clear a Cell"
                   putStrLn "f -     Flag a Cell"
                   putStrLn "u -   Remove a Flag"
-                  putStrLn "save - Save Progres"
+                  putStrLn "save - Save Progress"
                   putStrLn "exit -         Quit"
                   putStrLn "Please enter option"
                   input <- getLine
@@ -103,6 +105,54 @@ inputCoord = do
               putStrLn "Please enter the coordinates (row,column)"
               r_input <- getLine
               return (read r_input :: Pos)
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- READ/WRITE FILE -----------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+-- | Transfer a given string into a valid row
+parseToRow :: String -> Row
+parseToRow s = Row (parseToRow' s)
+
+parseToRow' :: String -> [Flag]
+parseToRow' [] = []
+parseToRow' (a : (b : (c :cs)))
+  | f == show Unselected  = Unselected             : parseToRow' cs
+  | f == show Flagged     = Flagged                : parseToRow' cs
+  | f == show Clear       = Clear                  : parseToRow' cs
+  | f == show Mine        = Mine                   : parseToRow' cs
+  | otherwise             = Numeric (digitToInt b) : parseToRow' cs
+    where f = [a, b, c]
+
+-- | Transfer a given string into a valid list of mine positions
+parseToPos :: String -> [Pos]
+parseToPos []         = []
+parseToPos (y:(x:is)) = (digitToInt y, digitToInt x) : parseToPos is
+
+-- | Read a minesweeper from a given filepath
+readMinesweeper :: FilePath -> IO (Maybe Minesweeper)
+readMinesweeper fp = do
+  exists <- fileExist fp
+  if exists then do
+    contents <- readFile fp
+    let ls = lines contents
+        len   = length ls - 1
+        rows  = take len ls
+        mines = ls !! len
+    return (Just (Minesweeper (Board (map parseToRow rows)) (len - 1) (parseToPos mines)))
+  else
+    return Nothing
+
+-- | Transfer a given list of mine positions to a string
+posToString :: [Pos] -> String
+posToString []         = []
+posToString ((y,x):is) = [intToDigit y, intToDigit x] ++ posToString is
+
+-- | Write a minesweeper to a given filepath
+writeMinesweeper :: FilePath -> Minesweeper -> IO ()
+writeMinesweeper fp (Minesweeper b _ m) = writeFile fp contents
+  where contents = show b ++ "\n" ++ posToString m
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRINTING FUNCTIONS --------------------------------------------------------------------------------------------------
