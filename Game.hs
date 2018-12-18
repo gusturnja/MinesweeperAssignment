@@ -128,9 +128,9 @@ parseToRow' (a : (b : (c :cs)))
     where f = [a, b, c]
 
 -- | Transfer a given string into a valid list of mine positions
-parseToPos :: String -> [Pos]
+parseToPos :: [String] -> [Pos]
 parseToPos []         = []
-parseToPos (y:(x:is)) = (digitToInt y, digitToInt x) : parseToPos is
+parseToPos (y:(x:ls)) = (read y :: Int, read x :: Int) : parseToPos ls
 
 -- | Read a minesweeper from a given filepath
 readMinesweeper :: FilePath -> IO (Maybe Minesweeper)
@@ -139,17 +139,17 @@ readMinesweeper fp = do
   if exists then do
     contents <- readFile fp
     let ls = lines contents
-        len   = length ls
-        rows  = take (len - 2) ls
-        mines = ls !! (len - 1)
-    return (Just (Minesweeper (Board (map parseToRow rows)) (len - 2) (parseToPos mines)))
+        len   = div (length (head ls)) 3 -- Since a square has size 3
+        rows  = take len ls
+        mines = drop (len + 1) ls
+    return (Just (Minesweeper (Board (map parseToRow rows)) len (parseToPos mines)))
   else
     return Nothing
 
 -- | Transfer a given list of mine positions to a string
 posToString :: [Pos] -> String
 posToString []         = []
-posToString ((y,x):is) = [intToDigit y, intToDigit x] ++ posToString is
+posToString ((y,x):is) = show y ++ "\n" ++ show x ++ "\n" ++ posToString is
 
 -- | Write a minesweeper to a given filepath
 writeMinesweeper :: FilePath -> Minesweeper -> IO ()
