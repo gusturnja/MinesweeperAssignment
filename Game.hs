@@ -139,10 +139,10 @@ readMinesweeper fp = do
   if exists then do
     contents <- readFile fp
     let ls = lines contents
-        len   = length ls - 1
-        rows  = take len ls
-        mines = ls !! len
-    return (Just (Minesweeper (Board (map parseToRow rows)) (len - 1) (parseToPos mines)))
+        len   = length ls
+        rows  = take (len - 2) ls
+        mines = ls !! (len - 1)
+    return (Just (Minesweeper (Board (map parseToRow rows)) (len - 2) (parseToPos mines)))
   else
     return Nothing
 
