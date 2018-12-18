@@ -3,6 +3,8 @@ import Minesweeper
 import System.Random
 import Data.List
 import System.Exit
+import Data.Char
+import System.Directory
 
 -- | Create a new minesweeper and being the game loop
 main = do
@@ -133,7 +135,7 @@ parseToPos (y:(x:is)) = (digitToInt y, digitToInt x) : parseToPos is
 -- | Read a minesweeper from a given filepath
 readMinesweeper :: FilePath -> IO (Maybe Minesweeper)
 readMinesweeper fp = do
-  exists <- fileExist fp
+  exists <- doesFileExist fp
   if exists then do
     contents <- readFile fp
     let ls = lines contents

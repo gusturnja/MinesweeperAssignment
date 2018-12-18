@@ -3,7 +3,7 @@ import System.Random
 import Data.List
 import Data.Char
 import Test.QuickCheck
-import System.Posix.Files
+--import System.Posix.Files
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DATA TYPES ----------------------------------------------------------------------------------------------------------
